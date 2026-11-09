@@ -38,7 +38,7 @@ Run (takes several minutes; start it in the background, then do step 2):
 ```
 
 - Provider and models come from env vars. Defaults: `TRADINGAGENTS_LLM_PROVIDER=anthropic`,
-  `claude-sonnet-5` (analysts) and `claude-opus-5-5` (managers). Any provider TradingAgents
+  `claude-opus-5-5` for every agent (set `TRADINGAGENTS_QUICK_THINK_LLM=claude-sonnet-5` for cheaper analysts). Any provider TradingAgents
   supports works (openai, google, openrouter, ...) if its key variable is set
   (e.g. `OPENROUTER_API_KEY`); a key saved as a network secret for that provider's host
   is injected by the proxy, so pass a dummy value in the variable.

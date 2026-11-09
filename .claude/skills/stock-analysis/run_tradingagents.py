@@ -6,20 +6,28 @@ Usage (with the TradingAgents virtualenv's python):
 
 The LLM provider and models come from TRADINGAGENTS_* environment variables
 (TRADINGAGENTS_LLM_PROVIDER, TRADINGAGENTS_QUICK_THINK_LLM, TRADINGAGENTS_DEEP_THINK_LLM)
-plus that provider's API key variable. Defaults here: anthropic, claude-sonnet-5 for
-the analysts, claude-opus-5-5 for the managers.
+plus that provider's API key variable. Defaults here: anthropic, claude-opus-5-5 for
+every agent (set TRADINGAGENTS_QUICK_THINK_LLM=claude-sonnet-5 for cheaper analysts).
 """
 import argparse, datetime, json, os, sys
 
 DEFAULTS = {
     "TRADINGAGENTS_LLM_PROVIDER": "anthropic",
-    "TRADINGAGENTS_QUICK_THINK_LLM": "claude-sonnet-5",
+    "TRADINGAGENTS_QUICK_THINK_LLM": "claude-opus-5-5",
     "TRADINGAGENTS_DEEP_THINK_LLM": "claude-opus-5-5",
     "TRADINGAGENTS_MAX_DEBATE_ROUNDS": "1",
     "TRADINGAGENTS_MAX_RISK_ROUNDS": "1",
 }
 for k, v in DEFAULTS.items():
     os.environ.setdefault(k, v)
+
+# Send the user's own Anthropic key to Anthropic's public API, never to a base URL
+# inherited from the surrounding session (e.g. a Claude Code runtime endpoint).
+if os.environ.get("TRADINGAGENTS_LLM_PROVIDER", "").lower() == "anthropic":
+    os.environ.pop("ANTHROPIC_BASE_URL", None)
+    if not os.environ.get("ANTHROPIC_API_KEY"):
+        sys.exit("ANTHROPIC_API_KEY is not set: add your own key from console.anthropic.com "
+                 "(see the stock-analysis skill), or pick another provider.")
 
 from tradingagents.default_config import build_default_config  # noqa: E402
 from tradingagents.graph.trading_graph import TradingAgentsGraph  # noqa: E402
