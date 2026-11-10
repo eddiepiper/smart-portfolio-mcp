@@ -9,6 +9,7 @@ bounded retries for transient errors, and an execution log entry per call.
 from __future__ import annotations
 
 import concurrent.futures as cf
+import inspect
 import time
 from dataclasses import dataclass, field
 from typing import Any, Callable, Optional
@@ -73,6 +74,11 @@ class Dispatcher:
             if idempotency_key in self._done:
                 prior = self._done[idempotency_key]
                 return TaskResult(prior.status, prior.output, prior.error, prior.log_id, cached=True)
+        try:
+            if "correlation_id" in inspect.signature(spec.fn).parameters:
+                kwargs["correlation_id"] = correlation_id      # propagate the trace id into the tool
+        except (TypeError, ValueError):
+            pass
         started = utcnow()
         t0 = time.monotonic()
         status, output, error = "ok", None, None

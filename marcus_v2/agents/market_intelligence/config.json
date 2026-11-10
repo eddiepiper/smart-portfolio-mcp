@@ -1,0 +1,17 @@
+{
+  "agent_id": "market_intelligence",
+  "version": "0.1.0",
+  "llm_enabled": false,
+  "invocation_policy": [
+    "scheduled refresh",
+    "Marcus requests context",
+    "TradingAgents needs inputs",
+    "new approved instrument",
+    "material market event",
+    "provider discrepancy"
+  ],
+  "primary_provider": "openbb",
+  "cross_check_provider": "yahoo",
+  "default_max_age_s": 3600,
+  "paid_providers": []
+}

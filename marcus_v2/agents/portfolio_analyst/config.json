@@ -1,0 +1,16 @@
+{
+  "agent_id": "portfolio_analyst",
+  "version": "0.1.0",
+  "llm_enabled": false,
+  "invocation_policy": [
+    "weekly review",
+    "monthly report",
+    "material portfolio change",
+    "significant drawdown",
+    "Marcus request",
+    "ledger reconciliation exception"
+  ],
+  "min_returns_for_risk": 20,
+  "return_method": "time-weighted (contributions excluded)",
+  "anomaly_daily_return": 0.15
+}
