@@ -26,6 +26,8 @@ POLICY: dict[str, set[str]] = {
     "execution_specialist": {"read_market_data", "read_ledger", "append_ledger",
                              "simulate_paper_execution", "read_mandate"},
     "portfolio_analyst": {"read_market_data", "read_ledger", "read_mandate"},
+    "quant": {"read_market_data", "read_research"},
+    "price_monitor": {"read_market_data", "write_market_cache"},
     "marcus": {"read_market_data", "read_research", "read_ledger", "read_mandate",
                "write_recommendation", "request_quant_review", "propose_mandate", "call_llm"},
 }

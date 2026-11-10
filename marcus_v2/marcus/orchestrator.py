@@ -160,7 +160,8 @@ class Marcus:
         q = None
         if ch.quant_review_recommended or bt is not None:
             q = self.quant.request_review([x for x in [research.report_id, ch.report_id, bt.result_id if bt else None] if x],
-                                          {"context": c, "backtest": bt.model_dump(mode="json") if bt else None,
+                                          {"instrument_id": instrument_id, "data_quality_status": dq.status.value,
+                                           "context": c, "backtest": bt.model_dump(mode="json") if bt else None,
                                            "challenge": ch.model_dump(mode="json")})
             self.rt.evidence.put(q, "quant_review", obj_id=q.review_id)
             rec.quant_refs = [q.review_id]

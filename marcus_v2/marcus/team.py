@@ -24,6 +24,8 @@ def build_team(rt: Runtime, *, providers: Optional[dict] = None, clock=None, qua
     rc = ResearchChallenger(rt).register()
     ex = ExecutionSpecialist(rt).register()
     pa = PortfolioAnalyst(rt).register()
-    quant = quant or QuantAdapter(FileQuantTransport(rt.home / "quant" / "inbox", rt.home / "quant" / "outbox"))
+    if quant is None:
+        from ..agents.quant.agent import Quant
+        quant = QuantAdapter(Quant(rt, mi=mi, dg=dg).register())       # cloud-native Quant (rebuilt 2026-11-10)
     ta = tradingagents or TradingAgentsAdapter(rt.home / "tradingagents")
     return Marcus(rt, mi=mi, dg=dg, sl=sl, rc=rc, ex=ex, pa=pa, tradingagents=ta, quant=quant)
