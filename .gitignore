@@ -72,3 +72,6 @@ ehthumbs.db
 Thumbs.db 
 # Day-trader skill working data (orders, broker log, portfolio)
 trader/
+
+# Marcus V2 runtime state (ledger, evidence, audit, caches)
+var/

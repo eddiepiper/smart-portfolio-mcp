@@ -1,0 +1,15 @@
+# Marcus V2 pinned dependencies (isolated venv; do not mix with the legacy requirements.txt)
+numba==0.68.1
+numpy==2.5.4
+openbb-core==2.0.1
+openbb-equity==2.0.0
+openbb-yfinance==2.1.0
+pandas==3.1.1
+pandera==0.36.0
+pydantic==2.14.3
+pytest==9.2.0
+pytest-asyncio==1.4.1.post1
+quantstats==0.0.86
+scipy==1.18.1
+vectorbt==1.2.0
+yfinance==1.8.0
