@@ -73,6 +73,16 @@ API (`ANTHROPIC_API_KEY` on the Mac mini).
   provider key (e.g. `ANTHROPIC_API_KEY`); `TradingAgentsAdapter` calls the pinned runner.
 - **Python API** (in-process): `build_runtime()` + `marcus_v2.marcus.team.build_team(rt)`.
 
+## 3b. Running entirely in the Claude cloud (owner decision 2026-11-10)
+
+Marcus, Quant and Price Monitor are rebuilt as cloud agents, so no Mac mini is required.
+1. **Environment:** create a `smart-portfolio-mcp` cloud environment with the setup script in
+   `docs/marcus_v2/cloud_setup.sh` and the allowed domains listed there.
+2. **State:** create a PRIVATE repo (e.g. `marcus-state`) and set `MARCUS_V2_STATE_REPO` to its URL.
+   Every run pulls the ledger first and pushes after changes. Never point it at a public repo.
+3. **Schedule:** a Claude scheduled task runs `python -m marcus_v2 daily_run` after the US close
+   (5:10 AM SGT) and `weekly_review` on Saturdays; each run posts the Markdown report.
+
 ## 4. Scheduling (cost control)
 
 Keep the existing schedule. Suggested cron on the Mac mini (New York times):

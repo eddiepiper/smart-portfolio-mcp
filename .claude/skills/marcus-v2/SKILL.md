@@ -15,7 +15,13 @@ argument-hint: "[daily_monitoring | new_opportunity | portfolio_review | status 
 
 # marcus-v2
 
-Claude is the runtime for Marcus V2 (owner decision 2026-11-10; Grok is not used).
+Claude is the runtime for Marcus V2 (owner decision 2026-11-10; Grok is not used). Marcus, Quant
+and Price Monitor were rebuilt to run in the Claude cloud (`marcus_v2/marcus`, `agents/quant`,
+`agents/price_monitor`). Marcus's own instructions: `marcus_v2/marcus/instructions.md`.
+
+State persistence: cloud sessions are temporary. When `MARCUS_V2_STATE_REPO` (a PRIVATE git repo)
+is set, every command pulls state first and pushes after changes; a diverged or tampered ledger stops
+the run instead of being merged.
 Every number comes from the specialists' deterministic tools; you coordinate and explain.
 Paper only. Real-money trading does not exist in this system.
 
@@ -29,6 +35,9 @@ $M daily_monitoring  --payload '{"events": [...], "watchlist": ["US:BAC"]}'
 $M new_opportunity   --payload '{"instrument_id": "US:PFE", "as_of": "YYYY-MM-DD", "plan": {"limit": "...", "stop": "...", "target": "..."}}'
 $M portfolio_review  --payload '{"instruments": ["US:BAC"], "base_currency": "SGD"}'
 $M telemetry
+$M daily_run                                       # Price Monitor scan -> Workflow A -> SGD snapshot -> report
+$M weekly_review                                   # portfolio analysis + telemetry
+$M watch_list                                      # Price Monitor rules
 ```
 
 Owner-only (run ONLY after the owner types an explicit approval in the chat, quoting the item):
@@ -38,6 +47,8 @@ $M approve          --owner owner:<name> --payload '{"recommendation_id": "rec_.
 $M mandate_approve  --owner owner:<name> --payload '{"version": 1}'
 $M import_legacy    --owner owner:<name> --payload '{"trader_dir": "trader", "capital_currency": "SGD"}'
 $M apply_topup      --owner owner:<name> --payload '{"target": "20000", "currency": "SGD", "stated_original": ["500", "SGD"]}'
+$M watch_add        --owner owner:<name> --payload '{"instrument_id": "US:BAC", "type": "daily_close_below", "level": "48.50"}'
+$M watch_import     --owner owner:<name> --payload '{"alerts_json": "trader/alerts.json"}'
 ```
 
 ## How to report

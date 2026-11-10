@@ -1,7 +1,7 @@
 # Marcus V2 — QA, security, cost and consolidated status report
 
 Branch `feature/marcus-v2-six-specialists`. Evidence: `docs/marcus_v2/test_evidence.txt`
-(92 passed, live providers included). This report is the engineering self-assessment; **independent
+(109 passed, live providers included). This report is the engineering self-assessment; **independent
 QA by Dex is still required** before any deployment decision.
 
 ## 1. Consolidated status
@@ -16,8 +16,9 @@ QA by Dex is still required** before any deployment decision.
 | Portfolio Analyst (QuantStats) | **WORKING** | real legacy account; hand-computed TWR matches | FX-converted SGD reporting needs an FX series (not yet wired) |
 | Marcus orchestrator (Workflows A–D) | **WORKING** with mocked TradingAgents/Quant | 6 end-to-end tests; live CLI demo | — |
 | TradingAgents adapter | **PARTIAL** | output parsing; outage handling | live run **NOT VERIFIED**: no LLM key in this environment |
-| Quant adapter | **CONTRACT ONLY** | file transport round trip | real Quant **NOT ACCESSIBLE** |
-| Price Monitor adapter | **CONTRACT ONLY** | event + trader-alerts line parsing, de-duplication | real Price Monitor **NOT ACCESSIBLE** |
+| Quant (rebuilt in the cloud) | **WORKING** | real SPY backtests; tampered-benchmark and leakage detection; significance rules | — (the Mac mini Quant was not migrated; owner chose a rebuild) |
+| Price Monitor (rebuilt in the cloud) | **WORKING** | rules on validated final bars, deterministic event ids, trader-alerts import | — |
+| Marcus daily/weekly runner + state sync | **WORKING** | two-session live test: state restored from a git repo; divergence and tampering refused | needs the owner's private state repo |
 | Claude runtime (replaces Grok) | **WORKING** in this repo | `marcus-v2` skill + JSON CLI + tool manifest | Mac mini not yet connected (Remote Control folder not shared) |
 | S$20,000 capital | **WORKING** (owner decision 2026-11-10: S$500 original) | S$500 import with dated validated FX (Nov 5, 1.27873); S$19,500 top-up; SGD reporting | apply on the Mac mini with the owner's approval |
 

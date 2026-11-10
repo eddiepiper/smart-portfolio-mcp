@@ -1,10 +1,16 @@
-# Marcus V2 test evidence — 2026-11-10T08:33Z, Python 3.13.18, MARCUS_V2_LIVE=1
+# Marcus V2 test evidence — 2026-11-10T08:46Z, MARCUS_V2_LIVE=1
 tests/marcus_v2/end_to_end/test_workflows.py::test_workflow_b_full_pipeline_to_paper_fill PASSED
 tests/marcus_v2/end_to_end/test_workflows.py::test_workflow_b_blocks_when_quant_challenges_and_lists_disagreement PASSED
 tests/marcus_v2/end_to_end/test_workflows.py::test_workflow_b_contradicted_research_not_bought PASSED
 tests/marcus_v2/end_to_end/test_workflows.py::test_workflow_d_research_outage_blocks_entries PASSED
 tests/marcus_v2/end_to_end/test_workflows.py::test_workflow_a_dedupes_and_validates PASSED
 tests/marcus_v2/end_to_end/test_workflows.py::test_unvalidated_market_data_cannot_reach_execution PASSED
+tests/marcus_v2/integration/test_cloud_runtime.py::test_state_survives_between_sessions PASSED
+tests/marcus_v2/integration/test_cloud_runtime.py::test_diverged_state_is_never_auto_merged PASSED
+tests/marcus_v2/integration/test_cloud_runtime.py::test_tampered_ledger_blocks_sync PASSED
+tests/marcus_v2/integration/test_cloud_runtime.py::test_refuses_to_overwrite_unsynced_local_state PASSED
+tests/marcus_v2/integration/test_cloud_runtime.py::test_daily_and_weekly_run PASSED
+tests/marcus_v2/integration/test_cloud_runtime.py::test_cli_daily_run_with_state_repo_live PASSED
 tests/marcus_v2/integration/test_existing_adapters.py::test_tradingagents_output_parsed PASSED
 tests/marcus_v2/integration/test_existing_adapters.py::test_tradingagents_unavailable_is_explicit PASSED
 tests/marcus_v2/integration/test_existing_adapters.py::test_quant_file_transport_round_trip PASSED
@@ -79,6 +85,17 @@ tests/marcus_v2/unit/test_portfolio_analyst.py::test_analyst_is_read_only PASSED
 tests/marcus_v2/unit/test_portfolio_analyst.py::test_sgd_legacy_import_uses_dated_validated_fx PASSED
 tests/marcus_v2/unit/test_portfolio_analyst.py::test_missing_fx_rate_refuses_import PASSED
 tests/marcus_v2/unit/test_portfolio_analyst.py::test_sgd_top_up_to_20000_and_sgd_reporting PASSED
+tests/marcus_v2/unit/test_price_monitor.py::test_watchlist_changes_need_owner PASSED
+tests/marcus_v2/unit/test_price_monitor.py::test_rules_fire_on_final_validated_bars_only PASSED
+tests/marcus_v2/unit/test_price_monitor.py::test_scan_events_feed_workflow_a_without_duplicates PASSED
+tests/marcus_v2/unit/test_price_monitor.py::test_import_trader_alerts PASSED
+tests/marcus_v2/unit/test_price_monitor.py::test_bad_data_means_no_events PASSED
+tests/marcus_v2/unit/test_quant.py::test_real_backtest_reviewed_independently PASSED
+tests/marcus_v2/unit/test_quant.py::test_tampered_benchmark_is_caught PASSED
+tests/marcus_v2/unit/test_quant.py::test_leakage_and_missing_evidence PASSED
+tests/marcus_v2/unit/test_quant.py::test_significance_rules PASSED
+tests/marcus_v2/unit/test_quant.py::test_bootstrap_is_reproducible PASSED
+tests/marcus_v2/unit/test_quant.py::test_quant_through_adapter_never_sees_marcus_verdict PASSED
 tests/marcus_v2/unit/test_research_challenger.py::test_detects_unsupported_and_contradicted_claims PASSED
 tests/marcus_v2/unit/test_research_challenger.py::test_supported_thesis_gets_no_manufactured_dissent PASSED
 tests/marcus_v2/unit/test_research_challenger.py::test_paraphrase_llm_flagged_as_not_independent PASSED
@@ -91,4 +108,4 @@ tests/marcus_v2/unit/test_strategy_lab.py::test_lookahead_fixture_is_detected PA
 tests/marcus_v2/unit/test_strategy_lab.py::test_insufficient_data PASSED
 tests/marcus_v2/unit/test_strategy_lab.py::test_parameter_sensitivity_reported PASSED
 tests/marcus_v2/unit/test_strategy_lab.py::test_unvalidated_data_refused PASSED
-============================= 92 passed in 21.62s ==============================
+============================= 109 passed in 36.76s =============================

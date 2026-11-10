@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 from datetime import date, datetime, timedelta
 from decimal import Decimal
 from zoneinfo import ZoneInfo
@@ -42,8 +43,28 @@ def main(argv=None) -> int:
     ap.add_argument("--home")
     a = ap.parse_args(argv)
     p = json.loads(a.payload)
-    rt = build_runtime(a.home)
-    owner_only = {"mandate_propose", "mandate_approve", "import_legacy", "approve", "apply_topup"}
+    from .core import state_sync
+    from .core.runtime import DEFAULT_HOME
+    home = Path(a.home) if a.home else DEFAULT_HOME
+    sync = state_sync.configured()
+    if sync and a.command not in ("manifest",):
+        state_sync.pull(home, *sync)                         # fresh cloud session: restore state first
+    rt = build_runtime(home)
+    code = _run(a, p, rt)
+    if sync and code == 0 and a.command in WRITE_COMMANDS:
+        res = state_sync.push(home, f"marcus_v2 {a.command} ({datetime.now(ZoneInfo('Asia/Singapore')):%Y-%m-%d %H:%M} SGT)", sync[1])
+        print(json.dumps({"state_sync": res.__dict__}), file=sys.stderr)
+    return code
+
+
+WRITE_COMMANDS = {"mandate_propose", "mandate_approve", "import_legacy", "apply_topup", "approve", "daily_run",
+                  "weekly_review", "watch_add", "watch_import", "watch_deactivate", "new_opportunity",
+                  "daily_monitoring", "portfolio_review", "state_push"}
+
+
+def _run(a, p, rt) -> int:
+    owner_only = {"mandate_propose", "mandate_approve", "import_legacy", "approve", "apply_topup",
+                  "watch_add", "watch_import", "watch_deactivate"}
     if a.command in owner_only and not (a.owner or "").startswith("owner:"):
         _out({"error": f"{a.command} needs --owner owner:<name> (a human approval)"})
         return 2
@@ -99,6 +120,25 @@ def main(argv=None) -> int:
         _out(team.workflow_c_portfolio_review(obs, base_currency=base, fx=fx)); return 0
     if a.command == "approve":
         _out(team.approve_recommendation(p["recommendation_id"], a.owner)); return 0
+    from .agents.price_monitor.agent import PriceMonitor
+    pm = PriceMonitor(rt, team.mi, team.dg).register()
+    if a.command == "watch_list":
+        _out(pm.list_rules()); return 0
+    if a.command == "watch_add":
+        _out(pm.add_rule(p, a.owner)); return 0
+    if a.command == "watch_deactivate":
+        pm.deactivate_rule(p["rule_id"], a.owner); _out({"deactivated": p["rule_id"]}); return 0
+    if a.command == "watch_import":
+        _out(pm.import_trader_alerts(p.get("alerts_json", "trader/alerts.json"), a.owner)); return 0
+    from .marcus import runner
+    if a.command == "daily_run":
+        r = runner.daily_run(team, pm, date.fromisoformat(p["as_of"]) if p.get("as_of") else None)
+        _out({"report_path": r["report_path"], "markdown": runner.render_markdown(r)}); return 0
+    if a.command == "weekly_review":
+        r = runner.weekly_review(team, date.fromisoformat(p["as_of"]) if p.get("as_of") else None)
+        _out({"report_path": r["report_path"], "markdown": runner.render_markdown(r)}); return 0
+    if a.command == "state_push":
+        _out({"note": "state is pushed after this command when MARCUS_V2_STATE_REPO is set"}); return 0
     _out({"error": f"unknown command {a.command}"})
     return 2
 
