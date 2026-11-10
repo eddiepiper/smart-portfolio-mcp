@@ -59,8 +59,11 @@ def classify_daily_bar(bar_date: date, asset_class: AssetClass, now: datetime) -
         # Near-24h markets (e.g. COMEX gold on Globex): today's bar is provisional until the
         # next day; settlement times differ from NYSE, so only prior days count as final.
         return PriceType.PROVISIONAL_INTRADAY if bar_date >= now_ny.date() else PriceType.HISTORICAL
+    if bar_date < now_ny.date() and is_trading_day(bar_date) is None:
+        # a completed past bar outside the encoded calendar years: final, but not "recent official"
+        return PriceType.HISTORICAL
     if is_trading_day(bar_date) is None:
-        return PriceType.UNSUPPORTED
+        return PriceType.UNSUPPORTED                   # today's bar in an unencoded year: cannot tell
     if bar_date < now_ny.date():
         return PriceType.OFFICIAL_CLOSE if bar_date >= now_ny.date() - timedelta(days=7) else PriceType.HISTORICAL
     if now_ny >= session_close(bar_date) + FINALISE_AFTER:
