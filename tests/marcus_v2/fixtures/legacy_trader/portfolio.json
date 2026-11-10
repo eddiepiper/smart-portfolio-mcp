@@ -1,0 +1,17 @@
+{
+  "cash": 296.4,
+  "positions": [
+    {
+      "ticker": "BAC",
+      "shares": 4.0,
+      "lots": [
+        {
+          "id": "BAC-1",
+          "date": "2026-11-05",
+          "shares": 4.0,
+          "cost": 203.6
+        }
+      ]
+    }
+  ]
+}
