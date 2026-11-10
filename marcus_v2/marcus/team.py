@@ -1,4 +1,4 @@
-"""Assemble the full V2 team (used by the CLI, the Grok adapter and end-to-end tests)."""
+"""Assemble the full V2 team (used by the CLI, the Claude skill and end-to-end tests)."""
 from __future__ import annotations
 
 from pathlib import Path

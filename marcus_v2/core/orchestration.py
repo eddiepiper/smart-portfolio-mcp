@@ -1,7 +1,7 @@
 """Lightweight in-process event bus / task dispatcher.
 
 No always-on service: tasks run in the caller's process, which is enough for a
-Mac mini and for being wrapped by the Grok runtime's tool calls. Provides:
+Mac mini and for being driven by Claude's tool calls. Provides:
 typed task routing to registered agent tools, permission checks, idempotency
 (the same idempotency key never runs a state-changing task twice), timeouts,
 bounded retries for transient errors, and an execution log entry per call.

@@ -1,10 +1,10 @@
-"""Adapters to existing components. Real TradingAgents / Quant / Price Monitor / Grok are NOT reachable
+"""Adapters to existing components. Real TradingAgents / Quant / Price Monitor are NOT reachable
 from the build environment: these tests exercise the contracts with MOCKED transports."""
 from datetime import date
 from types import SimpleNamespace
 
 from marcus_v2.core.contracts import Action, RetrievalStatus
-from marcus_v2.integrations.existing import (FileQuantTransport, QuantAdapter, TradingAgentsAdapter, grok_tool_manifest,
+from marcus_v2.integrations.existing import (FileQuantTransport, QuantAdapter, TradingAgentsAdapter, tool_manifest,
                                              parse_price_monitor_event)
 
 TA_STDOUT_REPORT = """# TradingAgents: PFE on 2026-11-09
@@ -71,6 +71,6 @@ def test_price_monitor_contracts():
     assert a.instrument_id == "US:BAC" and a.payload["price"] == "49.41"
 
 
-def test_grok_manifest_is_paper_only():
-    names = [t["name"] for t in grok_tool_manifest()]
-    assert "marcus.new_opportunity" in names and not any("live" in n or "broker" in n for n in names)
+def test_tool_manifest_is_paper_only():
+    names = [t["name"] for t in tool_manifest()]
+    assert "marcus_new_opportunity" in names and not any("live" in n or "broker" in n for n in names)

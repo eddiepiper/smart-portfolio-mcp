@@ -11,7 +11,7 @@ Date: 2026-11-10. Author: Claude Code (engineering). Status: COMPLETE (with bloc
 | Quant | Not found. | **NOT ACCESSIBLE** — adapter contract defined, MOCKED in tests. |
 | Price Monitor | Not found. Closest existing equivalent: `trader-alerts` skill + daily scheduled check in this repo. | Event adapter built against a JSON contract; real Price Monitor **NOT VERIFIED**. |
 | Dex | Not found. | Handover via docs + PR. |
-| Grok APIs / agent runtime / queues | Not found; no credentials. | **NOT VERIFIED** — compatibility adapter is a plain JSON in/out CLI + Python API, which any tool-calling runtime can wrap. |
+| Grok APIs / agent runtime / queues | Not found; no credentials. **Superseded 2026-11-10: owner chose Claude as the runtime.** | **NOT VERIFIED** — compatibility adapter is a plain JSON in/out CLI + Python API, which any tool-calling runtime can wrap. |
 | Paper portfolio history | `trader/portfolio.json` (git-ignored, this container): cash 296.40, 4 BAC @ 50.90 (2026-11-05); config `budget: 500`, currency **USD**. | Imported read-only. **Discrepancy**: directive says original capital S$500; local record is US$500. Flagged, not reconciled automatically. |
 | Existing repo code | `smart-portfolio-mcp`: DCM engine, bank-policy / rebalance agents, Telegram bot. | Preserved untouched; V2 lives in a separate `marcus_v2/` package. |
 | Mac mini hardware | Not reachable. Build container: 4 vCPU, 15 GB RAM, Python 3.13, Docker (daemon started manually). | Mac limits **NOT VERIFIED**. |
@@ -52,13 +52,13 @@ official source is used and pinned.
 |---|---|
 | LLM for Research Challenger narratives and TradingAgents | No key here. Deterministic checks run without it; LLM paths are MOCKED in tests. |
 | OpenBB paid providers (FMP, Polygon, Intrinio…) | Not used. yfinance provider only (free, delayed). |
-| Grok runtime | Not available. |
+| Grok runtime | Not used (owner decision 2026-11-10: Claude is the runtime). |
 | Brokerage | Prohibited. None configured. |
 
 ## 5. Blockers carried forward
 
-1. Marcus, Quant, Price Monitor, Dex and Grok are not reachable: their integrations are contract
+1. Marcus, Quant, Price Monitor and Dex are not reachable: their integrations are contract
    adapters, **NOT VERIFIED** against the real system until run on the Mac mini.
-2. Paper-capital history currency mismatch (US$500 local vs S$500 in directive): S$20,000 top-up
+2. RESOLVED 2026-11-10 — owner confirmed the original capital was S$500, raised to S$20,000. Previously: currency mismatch (US$500 local vs S$500 in directive): S$20,000 top-up
    is prepared as a pending, owner-approved contribution, not applied.
 3. No LLM key: TradingAgents and LLM narrative paths cannot be demonstrated live.

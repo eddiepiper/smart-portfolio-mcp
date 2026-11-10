@@ -222,6 +222,22 @@ class Marcus:
                                 status=rec.decision_status, approval=rec.owner_approval.value)
         return rec
 
+    # ------------------------------------------------------------------ FX
+    def fx_rates(self, start: date, end: date, pair: str = "FX:USDSGD") -> dict:
+        """Validated daily closes for a currency pair (units of quote currency per USD).
+        Returns {"rates": {date: Decimal}, "series": pd.Series, "dq_report": id, "status": ...}."""
+        import pandas as pd
+        corr = new_id("corr")
+        rep = self._call("market_intelligence", "get_historical_prices", corr, instrument_id=pair, start=start, end=end,
+                         requesting_agent="portfolio_analyst")
+        dq = self._call("data_guardian", "validate_report", corr, report=rep, purpose="research")
+        good = [o for o in rep.observations if o.validation_status != QualityStatus.REJECTED
+                and o.price_type.value in ("official_close", "historical") and o.close is not None]
+        rates = {o.bar_date: o.close for o in good}
+        series = pd.Series({pd.Timestamp(d): float(v) for d, v in rates.items()}).sort_index()
+        return {"rates": rates, "series": series, "dq_report": dq.report_id, "status": dq.status.value,
+                "source": rep.source_provider}
+
     # ----------------------------------------------------------- approvals and execution
     def approve_recommendation(self, recommendation_id: str, approver: str) -> InvestmentRecommendation:
         if not approver.startswith("owner:"):

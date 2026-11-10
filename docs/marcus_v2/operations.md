@@ -1,4 +1,4 @@
-# Marcus V2 — Setup, Mac deployment, Grok integration, troubleshooting, rollback
+# Marcus V2 — Setup, Mac deployment, Claude integration, troubleshooting, rollback
 
 **Deployment requires owner approval.** Nothing here is wired into the live Marcus workflow yet.
 
@@ -27,28 +27,42 @@ Do **not** set any brokerage environment variables: the runtime refuses to start
 M=".venv-marcus-v2/bin/python -m marcus_v2"
 $M mandate_propose --owner owner:<you>                    # writes v1 (S$20,000), status pending
 $M mandate_approve --owner owner:<you> --payload '{"version":1}'           ★
-$M import_legacy --owner owner:<you> --payload '{"trader_dir":"trader","dry_run":true}'   # review first
-$M import_legacy --owner owner:<you> --payload '{"trader_dir":"trader"}'                 ★
+$M import_legacy --owner owner:<you> --payload '{"trader_dir":"trader","capital_currency":"SGD","dry_run":true}'   # review first
+$M import_legacy --owner owner:<you> --payload '{"trader_dir":"trader","capital_currency":"SGD"}'                 ★
 $M plan_topup --payload '{"target":"20000","currency":"SGD","stated_original":["500","SGD"]}'
+$M apply_topup --owner owner:<you> --payload '{"target":"20000","currency":"SGD","stated_original":["500","SGD"]}'  ★
 ```
 
-`plan_topup` currently returns **BLOCKED**: the legacy account is recorded in USD ($500, sized and
-filled in USD), while the directive states S$500. Resolve one of:
-1. Confirm the original capital was **US$500** → approve an FX-dated conversion or a USD top-up; or
-2. Confirm it was **S$500** → correct the legacy currency with an approved adjustment note.
-Then `apply_topup --owner owner:<you>` writes one dated contribution (never a return).
+**Owner decision (2026-11-10): the original capital was S$500, raised to S$20,000.** The import
+records a S$500 contribution, then funds the BAC purchase (US$203.60 on 2026-11-05) with a dated
+FX conversion at the validated USD/SGD close for that day (1.27873 → S$260.35), leaving S$239.65.
+A missing rate stops the import; no rate is assumed. `apply_topup` then writes one dated S$19,500
+contribution — a cash flow, never a return — so contributed capital is exactly S$20,000.
+Reports are in SGD; USD holdings are converted at the latest validated USD/SGD close.
 
-## 3. Grok integration guide
+## 3. Claude integration guide (owner decision 2026-11-10: Claude, not Grok)
 
-The real Grok runtime was not reachable, so this is the contract Dex wires up (NOT VERIFIED):
+Claude is Marcus's runtime. Two ways to run it on the Mac mini:
 
-- **Tool manifest:** `python -m marcus_v2 manifest` prints JSON-schema function definitions
-  (`marcus.daily_monitoring`, `marcus.new_opportunity`, `marcus.portfolio_review`,
-  `marcus.execute_approved_order`, `marcus.telemetry`).
+1. **Connect the Mac mini to Claude (Remote Control)** so a Claude session can work in its folders:
+   - Claude Desktop app on the Mac mini → **Settings → Claude Code → Remote Control** → add the
+     folder that holds this repository (and the existing Marcus folder, if separate); or
+   - in Terminal, `cd` to that folder and run `claude remote-control`.
+   The folder then appears to Claude sessions you start from your account, which can ask to use it
+   (you approve each request on the Mac mini). Not the home folder, nor a hidden folder under it.
+2. **Run Claude Code locally on the Mac mini** in the repository folder.
+
+Either way Claude uses the `marcus-v2` skill (`.claude/skills/marcus-v2/SKILL.md`), which calls the
+JSON command line below. TradingAgents and the Research Challenger's narrative use the Anthropic
+API (`ANTHROPIC_API_KEY` on the Mac mini).
+
+- **Tool manifest:** `python -m marcus_v2 manifest` prints tool definitions in Claude's tool-use
+  shape (`marcus_daily_monitoring`, `marcus_new_opportunity`, `marcus_portfolio_review`,
+  `marcus_execute_approved_order`, `marcus_telemetry`).
 - **Invocation:** each tool maps to `python -m marcus_v2 <command> --payload '<json>'`; stdout is
   JSON; exit 0 ok, 1 error (`{"error": ..., "detail": ...}`), 2 refused (owner-only / unknown).
 - **Owner-only commands** need `--owner owner:<name>` and must be bound to a human confirmation
-  step in Grok, never to an agent turn.
+  step: the skill runs them only after the owner types an explicit approval in the chat.
 - **Price Monitor:** send events as `{"event_id","instrument_id","type","occurred_at",...}` or raw
   trader-alerts lines `{"line": "ALERT BAC last $49.41: ...", "occurred_at": ...}` to
   `daily_monitoring`. Duplicates are ignored across runs.

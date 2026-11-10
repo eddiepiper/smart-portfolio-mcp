@@ -145,16 +145,33 @@ class PortfolioAnalyst(Agent):
                              "price": str(px), "price_date": str(s.index[-1].date()), "market_value": str(mv),
                              "unrealised_pnl": str((mv - p["cost"]).quantize(Decimal("0.01"))), "currency": p["currency"]})
             unreal[p["currency"]] += mv - p["cost"]
-            if p["currency"] == base_currency:
-                mv_total += mv
-        cash_base = st["cash"].get(base_currency, Decimal("0"))
-        other_ccy = [c for c in list(st["cash"]) + [h.get("currency") for h in holdings if h.get("currency")] if c and c != base_currency]
-        if other_ccy and not fx:
-            warnings.append(f"amounts in {sorted(set(other_ccy))} not converted to {base_currency}: no FX series supplied")
-        equity = (cash_base + mv_total) if valued_all and not other_ccy else None
-        # reconciliation: equity must equal cash + holdings at market
+        # convert every currency to base at the latest validated FX rate; a missing rate leaves equity unreported
+        fx_used: dict[str, str] = {}
+
+        def to_base(ccy: str) -> Optional[Decimal]:
+            if ccy == base_currency:
+                return Decimal("1")
+            s = (fx or {}).get(ccy)
+            if s is None or len(s) == 0:
+                return None
+            fx_used[ccy] = f"{s.iloc[-1]} on {s.index[-1].date()}"
+            return Decimal(str(s.iloc[-1]))
+
+        missing_fx = sorted({c for c in list(st["cash"]) + [h.get("currency") for h in holdings if h.get("currency")]
+                             if c and to_base(c) is None})
+        if missing_fx:
+            warnings.append(f"amounts in {missing_fx} not converted to {base_currency}: no FX series supplied")
+        cash_base = sum((amt * to_base(c) for c, amt in st["cash"].items() if c not in missing_fx), Decimal("0")).quantize(Decimal("0.01"))
+        for h in holdings:
+            if h.get("market_value") and h.get("currency") not in missing_fx:
+                h["market_value_base"] = str((Decimal(h["market_value"]) * to_base(h["currency"])).quantize(Decimal("0.01")))
+        mv_total = sum((Decimal(h["market_value_base"]) for h in holdings if h.get("market_value_base")), Decimal("0"))
+        equity = (cash_base + mv_total) if valued_all and not missing_fx else None
+        if fx_used:
+            warnings.append(f"converted to {base_currency} at latest validated FX: {fx_used}")
+        # reconciliation: equity must equal cash + holdings at market (both in base currency)
         if equity is not None:
-            check = cash_base + sum(Decimal(h["market_value"]) for h in holdings if h.get("market_value"))
+            check = cash_base + sum(Decimal(h["market_value_base"]) for h in holdings if h.get("market_value_base"))
             if check != equity:
                 recon.append(f"equity {equity} != cash + holdings {check}")
         series = self.calculate_portfolio_equity(observations, fx, base_currency)
@@ -199,8 +216,8 @@ class PortfolioAnalyst(Agent):
         weights = {}
         if equity:
             for h in holdings:
-                if h.get("market_value"):
-                    weights[h["instrument_id"]] = round(float(Decimal(h["market_value"]) / equity) * 100, 2)
+                if h.get("market_value_base"):
+                    weights[h["instrument_id"]] = round(float(Decimal(h["market_value_base"]) / equity) * 100, 2)
         rep = PortfolioAnalysisReport(
             portfolio_id=self.rt.portfolio_id, period_start=eq.index[0].date() if len(eq) else None,
             period_end=eq.index[-1].date() if len(eq) else None, base_currency=base_currency,

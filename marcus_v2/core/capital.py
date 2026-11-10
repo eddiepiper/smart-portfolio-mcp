@@ -46,34 +46,65 @@ class CapitalPlan:
                 "discrepancies": self.discrepancies, "status": self.status}
 
 
-def plan_legacy_import(trader_dir: str | Path, portfolio_id: str) -> tuple[list[LedgerEvent], list[str]]:
-    """Translate the day-trader paper account (trader/portfolio.json + config.json) into ledger events."""
+def plan_legacy_import(trader_dir: str | Path, portfolio_id: str, *, capital_currency: str = "USD",
+                       fx_rates: Optional[dict] = None, fx_source: str = "") -> tuple[list[LedgerEvent], list[str]]:
+    """Translate the day-trader paper account (trader/portfolio.json + config.json) into ledger events.
+
+    capital_currency: the currency the owner states the original budget was in. Trades in the legacy
+    record are USD (US-listed shares). When the capital currency differs, each purchase is funded by a
+    dated FX conversion at a validated rate from `fx_rates` ({date: units of capital currency per USD}).
+    A missing rate raises CapitalError: no rate is ever assumed.
+    """
     d = Path(trader_dir)
     pf = json.loads((d / "portfolio.json").read_text())
     cfg = json.loads((d / "config.json").read_text()) if (d / "config.json").exists() else {}
     notes, events = [], []
     budget = Decimal(str(cfg.get("budget", "0")))
-    ccy = "USD"   # the trader-* skills price and size in USD; the config has no currency field
-    notes.append("legacy config has no currency field; trader-* skills operate in USD, so the budget is read as USD")
+    trade_ccy = "USD"
+    if capital_currency == "USD":
+        notes.append("legacy config has no currency field; budget read as USD")
+    else:
+        notes.append(f"owner decision: original capital was {capital_currency} {budget} (legacy config has no currency field)")
     notes.append("legacy record has no contribution date; 2026-11-03 (paper account set-up) is used and marked approximate")
-    events.append(LedgerEvent(event_type=LedgerEventType.CONTRIBUTION, portfolio_id=portfolio_id, currency=ccy, amount=budget,
-                              event_at=datetime(2026, 11, 3, tzinfo=ZoneInfo("Asia/Singapore")),
+    events.append(LedgerEvent(event_type=LedgerEventType.CONTRIBUTION, portfolio_id=portfolio_id, currency=capital_currency,
+                              amount=budget, event_at=datetime(2026, 11, 3, tzinfo=ZoneInfo("Asia/Singapore")),
                               idempotency_key=f"legacy-contribution:{portfolio_id}",
-                              memo="imported from trader/config.json budget; date approximate"))
+                              memo=f"imported from trader/config.json budget ({capital_currency}, owner-confirmed); date approximate"))
+    spent_capital = Decimal("0")
     for pos in pf.get("positions", []):
         for lot in pos.get("lots", []):
             qty = Decimal(str(lot["shares"]))
             cost = Decimal(str(lot["cost"]))
+            when = datetime.fromisoformat(lot["date"]).replace(hour=16, tzinfo=ZoneInfo("America/New_York"))
+            if capital_currency != trade_ccy:
+                rate = (fx_rates or {}).get(when.date())
+                if rate is None:
+                    raise CapitalError(f"no validated {capital_currency}/{trade_ccy} rate for {when.date()}; cannot fund lot {lot['id']}")
+                out = (cost * Decimal(str(rate))).quantize(Decimal("0.01"))
+                spent_capital += out
+                key = f"legacy-fx:{portfolio_id}:{lot['id']}"
+                memo = f"FX for legacy lot {lot['id']}: {trade_ccy} {cost} at {rate} {capital_currency}/{trade_ccy} ({fx_source})"
+                events.append(LedgerEvent(event_type=LedgerEventType.FX, portfolio_id=portfolio_id, currency=capital_currency,
+                                          amount=-out, price=Decimal(str(rate)), price_source=fx_source, event_at=when,
+                                          idempotency_key=key + ":out", memo=memo))
+                events.append(LedgerEvent(event_type=LedgerEventType.FX, portfolio_id=portfolio_id, currency=trade_ccy,
+                                          amount=cost, price=Decimal(str(rate)), price_source=fx_source, event_at=when,
+                                          idempotency_key=key + ":in", memo=memo))
+            else:
+                spent_capital += cost
             events.append(LedgerEvent(event_type=LedgerEventType.BUY, portfolio_id=portfolio_id,
-                                      instrument_id=f"US:{pos['ticker']}", quantity=qty, currency=ccy, amount=-cost,
+                                      instrument_id=f"US:{pos['ticker']}", quantity=qty, currency=trade_ccy, amount=-cost,
                                       price=(cost / qty).quantize(Decimal("0.01")), price_source="legacy trader/portfolio.json",
-                                      event_at=datetime.fromisoformat(lot["date"]).replace(hour=16, tzinfo=ZoneInfo("America/New_York")),
-                                      idempotency_key=f"legacy-lot:{portfolio_id}:{lot['id']}",
+                                      event_at=when, idempotency_key=f"legacy-lot:{portfolio_id}:{lot['id']}",
                                       memo="imported legacy paper lot; legacy record holds no fee"))
-    implied_cash = budget - sum(-e.amount for e in events if e.event_type == LedgerEventType.BUY)
     actual = Decimal(str(pf.get("cash", "0")))
-    if implied_cash != actual:
-        notes.append(f"DISCREPANCY: legacy cash {actual} != budget minus lots {implied_cash}")
+    if capital_currency == trade_ccy:
+        implied = budget - spent_capital
+        if implied != actual:
+            notes.append(f"DISCREPANCY: legacy cash {actual} != budget minus lots {implied}")
+    else:
+        notes.append(f"legacy cash figure {actual} was single-currency arithmetic (budget minus USD cost); "
+                     f"with FX the remaining capital is {capital_currency} {budget - spent_capital}")
     return events, notes
 
 

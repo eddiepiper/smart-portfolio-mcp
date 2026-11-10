@@ -114,3 +114,51 @@ def test_analyst_is_read_only(rt):
         require("portfolio_analyst", "append_ledger")
     pa = PortfolioAnalyst(rt)
     assert not hasattr(pa.reader, "append")
+
+
+# ---- owner decision 2026-11-10: original capital S$500, mandate raised to S$20,000 ----
+def _fx(rt):
+    from marcus_v2.marcus.team import build_team
+    # FX fixture was fetched ~08:20 UTC on 2026-11-10; the clock must be after that or Data Guardian
+    # (correctly) rejects the source timestamps as being in the future
+    later = datetime(2026, 11, 10, 9, 0, tzinfo=timezone.utc)
+    team = build_team(rt, providers={"fixture": FixtureProvider(FIXTURES / "bars.json")}, clock=lambda: later)
+    fx = team.fx_rates(date(2026, 10, 1), date(2026, 11, 9))
+    assert date(2026, 10, 7) not in fx["rates"] and date(2026, 10, 20) not in fx["rates"]   # inconsistent Yahoo bars excluded
+    return fx
+
+
+def test_sgd_legacy_import_uses_dated_validated_fx(rt):
+    fx = _fx(rt)
+    assert fx["rates"][date(2026, 11, 5)] == Decimal("1.27873")
+    events, notes = capital.plan_legacy_import(FIXTURES / "legacy_trader", rt.portfolio_id, capital_currency="SGD",
+                                               fx_rates=fx["rates"], fx_source="yahoo validated")
+    capital.apply_events(rt.ledger_writer(), events, "owner:edward")
+    s = balances(rt.ledger_reader().events())
+    assert s["contributed"] == {"SGD": Decimal("500")}                       # FX legs are not contributions
+    assert s["cash"]["SGD"] == Decimal("500") - Decimal("260.35")           # 203.60 USD x 1.27873
+    assert s["cash"]["USD"] == Decimal("0") and s["positions"]["US:BAC"]["quantity"] == 4
+    assert any("owner decision" in n for n in notes)
+
+
+def test_missing_fx_rate_refuses_import(rt):
+    with pytest.raises(capital.CapitalError):
+        capital.plan_legacy_import(FIXTURES / "legacy_trader", rt.portfolio_id, capital_currency="SGD", fx_rates={})
+
+
+def test_sgd_top_up_to_20000_and_sgd_reporting(rt, market):
+    fx = _fx(rt)
+    events, _ = capital.plan_legacy_import(FIXTURES / "legacy_trader", rt.portfolio_id, capital_currency="SGD", fx_rates=fx["rates"])
+    capital.apply_events(rt.ledger_writer(), events, "owner:edward")
+    plan = capital.plan_top_up(rt.ledger_writer(), rt.portfolio_id, Decimal("20000"), "SGD",
+                               datetime(2026, 11, 10, 9, tzinfo=ZoneInfo("Asia/Singapore")),
+                               owner_stated_original=(Decimal("500"), "SGD"))
+    assert plan.status == "PENDING_APPROVAL" and plan.proposed_events[0].amount == Decimal("19500")
+    capital.apply_plan(rt.ledger_writer(), plan, "owner:edward")
+    assert balances(rt.ledger_reader().events())["contributed"] == {"SGD": Decimal("20000")}
+    rep = PortfolioAnalyst(rt).generate_performance_report({"US:BAC": market("US:BAC")}, base_currency="SGD",
+                                                           fx={"USD": fx["series"]})
+    rate = Decimal(str(fx["series"].iloc[-1]))                              # latest validated USD->SGD (Nov 9)
+    expected = Decimal("239.65") + Decimal("19500") + (Decimal("4") * Decimal("50.55") * rate).quantize(Decimal("0.01"))
+    assert Decimal(rep.equity) == expected and rep.contributed_capital == {"SGD": "20000"}
+    assert any("converted to SGD" in w for w in rep.warnings)

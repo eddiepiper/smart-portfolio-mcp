@@ -1,11 +1,11 @@
-"""Adapters to the EXISTING components: TradingAgents, Quant, Price Monitor, Grok.
+"""Adapters to the EXISTING components: TradingAgents, Quant, Price Monitor, and the Claude runtime.
 
 TradingAgents: real adapter over the repo's pinned runner
 (.claude/skills/stock-analysis/run_tradingagents.py). Runs only when an LLM key
 is configured; otherwise returns a FAILED ResearchReport that says so.
 Status: NOT VERIFIED end to end (no LLM key in the build environment).
 
-Quant / Price Monitor / Grok: the real components live on the Mac mini and were
+Quant / Price Monitor: the real components live on the Mac mini and were
 not reachable. These adapters define the JSON contract they exchange and a
 file/CLI transport any runtime can drive. Status: NOT VERIFIED against the real
 systems; MOCKED in tests.
@@ -141,8 +141,10 @@ def parse_price_monitor_event(payload: dict) -> MarketEvent:
                        source="price_monitor", occurred_at=datetime.fromisoformat(payload["occurred_at"]))
 
 
-# --------------------------------------------------------------------------- Grok
-GROK_TOOLS = {
+# ----------------------------------------------------------------- Claude runtime
+# Owner decision 2026-11-10: Marcus runs on Claude (Claude Code / Claude Desktop on the Mac mini),
+# not Grok. Claude drives these through the `marcus-v2` skill (.claude/skills/marcus-v2) or as tools.
+TOOLS = {
     "marcus.daily_monitoring": "Workflow A: validate Price Monitor events, refresh research only when needed",
     "marcus.new_opportunity": "Workflow B: full specialist pipeline for one instrument; ends with a recommendation pending owner approval",
     "marcus.portfolio_review": "Workflow C: analyst metrics and rebalancing proposals",
@@ -151,7 +153,8 @@ GROK_TOOLS = {
 }
 
 
-def grok_tool_manifest() -> list[dict]:
-    """A generic function-calling manifest (JSON schema) for the Grok runtime. NOT VERIFIED against Grok."""
-    return [{"name": n, "description": d, "parameters": {"type": "object", "properties": {"payload": {"type": "object"}},
-                                                          "required": ["payload"]}} for n, d in GROK_TOOLS.items()]
+def tool_manifest() -> list[dict]:
+    """Tool definitions in the Claude tool-use shape (name, description, input_schema)."""
+    return [{"name": n.replace(".", "_"), "description": d,
+             "input_schema": {"type": "object", "properties": {"payload": {"type": "object"}}, "required": ["payload"]}}
+            for n, d in TOOLS.items()]

@@ -149,7 +149,7 @@ Challenger (AI Hedge Fund patterns), Execution Specialist (LEAN fill semantics, 
 Portfolio Analyst (QuantStats). Real-money trading is technically unavailable.
 
 - Architecture: `docs/marcus_v2/architecture.md`
-- Setup, Mac deployment, Grok integration, rollback: `docs/marcus_v2/operations.md`
+- Setup, Mac deployment, Claude integration (Remote Control), rollback: `docs/marcus_v2/operations.md`
 - QA, security, cost and status: `docs/marcus_v2/qa_report.md`
 - Phase 0 assessment of the six projects: `docs/marcus_v2/phase0_assessment.md`
 

@@ -1,5 +1,11 @@
 # CLAUDE.md
 
+## Marcus V2 (paper investment team)
+
+For portfolio reviews, end-to-end opportunity assessments, price-alert processing, paper
+execution or ledger/mandate questions, use the `marcus-v2` skill. Claude is Marcus's runtime
+(not Grok). Owner-only commands need the owner's explicit approval in the chat first.
+
 ## Stock questions
 
 Whenever the user asks about a stock, ETF or ticker (should I buy X, analyze X, levels

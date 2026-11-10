@@ -1,4 +1,4 @@
-"""JSON in / JSON out entry point for Marcus V2 (the Grok runtime integration surface).
+"""JSON in / JSON out entry point for Marcus V2 (the integration surface Claude drives via the marcus-v2 skill).
 
     python -m marcus_v2 manifest
     python -m marcus_v2 telemetry
@@ -27,7 +27,7 @@ from zoneinfo import ZoneInfo
 from .core import capital
 from .core.mandate import default_v2_mandate
 from .core.runtime import build_runtime
-from .integrations.existing import grok_tool_manifest
+from .integrations.existing import tool_manifest
 
 
 def _out(obj) -> None:
@@ -48,7 +48,7 @@ def main(argv=None) -> int:
         _out({"error": f"{a.command} needs --owner owner:<name> (a human approval)"})
         return 2
     if a.command == "manifest":
-        _out(grok_tool_manifest()); return 0
+        _out(tool_manifest()); return 0
     if a.command == "telemetry":
         _out(rt.audit.telemetry()); return 0
     if a.command == "mandate_propose":
@@ -56,7 +56,14 @@ def main(argv=None) -> int:
     if a.command == "mandate_approve":
         _out(rt.mandates.approve("marcus-paper", p["version"], a.owner)); return 0
     if a.command == "import_legacy":
-        events, notes = capital.plan_legacy_import(p.get("trader_dir", "trader"), rt.portfolio_id)
+        ccy = p.get("capital_currency", "SGD")     # owner decision 2026-11-10: original capital was S$500
+        fx = None
+        if ccy != "USD":
+            from .marcus.team import build_team
+            fx = build_team(rt).fx_rates(date(2026, 10, 1), date.today())
+        events, notes = capital.plan_legacy_import(p.get("trader_dir", "trader"), rt.portfolio_id, capital_currency=ccy,
+                                                   fx_rates=fx["rates"] if fx else None,
+                                                   fx_source=f"{fx['source']} validated ({fx['dq_report']})" if fx else "")
         if p.get("dry_run", False):
             _out({"events": events, "notes": notes}); return 0
         _out({"written": capital.apply_events(rt.ledger_writer(), events, a.owner), "notes": notes}); return 0
@@ -87,7 +94,9 @@ def main(argv=None) -> int:
             r = team.mi.get_historical_prices(iid, start, end, requesting_agent="portfolio_analyst")
             team.dg.validate_report(r, purpose="research")
             obs[iid] = r.observations
-        _out(team.workflow_c_portfolio_review(obs, base_currency=p.get("base_currency", "USD"))); return 0
+        base = p.get("base_currency", "SGD")
+        fx = {"USD": team.fx_rates(start - timedelta(days=30), end)["series"]} if base == "SGD" else None
+        _out(team.workflow_c_portfolio_review(obs, base_currency=base, fx=fx)); return 0
     if a.command == "approve":
         _out(team.approve_recommendation(p["recommendation_id"], a.owner)); return 0
     _out({"error": f"unknown command {a.command}"})

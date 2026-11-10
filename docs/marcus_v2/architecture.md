@@ -5,12 +5,12 @@
 ```mermaid
 flowchart LR
   Owner((Owner)) -->|approves| Mandates[(Versioned mandates)]
-  subgraph Mac mini / Grok  [NOT ACCESSIBLE from the build environment]
+  subgraph Mac mini  [NOT YET CONNECTED: share a folder via Claude Remote Control]
     MarcusG[Marcus] --- QuantG[Quant] --- PMG[Price Monitor] --- DexG[Dex]
   end
   subgraph smart-portfolio-mcp
     Skills[trader-* skills + stock-analysis] --> TA[TradingAgents v0.7.1 runner]
-    Legacy[(trader/portfolio.json<br/>US$500 paper)]
+    Legacy[(trader/portfolio.json<br/>S$500 paper, USD trades)]
   end
 ```
 
@@ -21,6 +21,7 @@ flowchart TD
   PM[Price Monitor events] --> A[Workflow A]
   A --> DG
   Owner((Owner)) -->|approve mandate / recommendation / capital| Marcus
+  Claude[Claude runtime<br/>marcus-v2 skill] --> Marcus
   Marcus[Marcus orchestrator<br/>deterministic decisions] --> MI[Market Intelligence<br/>OpenBB]
   MI --> DG[Data Guardian<br/>Pandera]
   DG -->|VALID/WARNING only| TA[TradingAgents<br/>primary research]

@@ -1,7 +1,7 @@
 # Marcus V2 — QA, security, cost and consolidated status report
 
 Branch `feature/marcus-v2-six-specialists`. Evidence: `docs/marcus_v2/test_evidence.txt`
-(89 passed, live providers included). This report is the engineering self-assessment; **independent
+(92 passed, live providers included). This report is the engineering self-assessment; **independent
 QA by Dex is still required** before any deployment decision.
 
 ## 1. Consolidated status
@@ -18,8 +18,8 @@ QA by Dex is still required** before any deployment decision.
 | TradingAgents adapter | **PARTIAL** | output parsing; outage handling | live run **NOT VERIFIED**: no LLM key in this environment |
 | Quant adapter | **CONTRACT ONLY** | file transport round trip | real Quant **NOT ACCESSIBLE** |
 | Price Monitor adapter | **CONTRACT ONLY** | event + trader-alerts line parsing, de-duplication | real Price Monitor **NOT ACCESSIBLE** |
-| Grok integration | **CONTRACT ONLY** | JSON CLI + tool manifest | Grok runtime **NOT ACCESSIBLE** |
-| S$20,000 capital | **BLOCKED (by design)** | legacy import reproduces cash 296.40 + 4 BAC | currency discrepancy (US$500 recorded vs S$500 stated) needs owner decision |
+| Claude runtime (replaces Grok) | **WORKING** in this repo | `marcus-v2` skill + JSON CLI + tool manifest | Mac mini not yet connected (Remote Control folder not shared) |
+| S$20,000 capital | **WORKING** (owner decision 2026-11-10: S$500 original) | S$500 import with dated validated FX (Nov 5, 1.27873); S$19,500 top-up; SGD reporting | apply on the Mac mini with the owner's approval |
 
 ## 2. Acceptance tests mapped to the directive
 
@@ -53,7 +53,7 @@ Notable real-data findings during QA:
 | Tamper evidence | SHA-256 hash chain, sequence checks, quarantine of torn writes | `test_ledger_tamper_detected`, `test_interrupted_write…` |
 | Excluded third-party risk | AI Hedge Fund x402 wallet module not imported; OpenBB look-alike URL not used | Phase 0 §3 |
 
-Residual risks: (1) Grok-side wiring must bind owner-only commands to a human step; (2) the
+Residual risks: (1) the Claude skill must only pass `--owner` after an explicit owner approval in the chat; (2) the
 `--owner` flag is an assertion, not authentication — protect the Mac mini account; (3) Yahoo data
 is unofficial and delayed.
 
@@ -76,7 +76,7 @@ is unofficial and delayed.
 2. NYSE calendar covers 2026–2027 only (same table as the trader skills); extend yearly.
 3. Gold uses COMEX futures (GC=F) as its only free daily source — not spot XAU/USD and not OCBC's
    precious-metals quote.
-4. SGD base-currency reporting needs an FX series (USD→SGD) wired into Portfolio Analyst.
+4. ~~SGD reporting needs an FX series~~ — done: USD/SGD (Yahoo `SGD=X`) validated by Data Guardian; 2 inconsistent Yahoo FX bars since October (Oct 7, Oct 20) are excluded.
 5. LEAN engine cross-check not run (disk allowance in the build container); run on the Mac mini.
 
 ## 6. Phase reports
@@ -89,6 +89,6 @@ is unofficial and delayed.
 | 4 Strategy Lab | COMPLETE | `f867404` |
 | 5 Research Challenger | COMPLETE (LLM path mocked) | `b3e01b2` |
 | 6 Execution Specialist | COMPLETE (LEAN engine cross-check blocked) | `370088e` |
-| 7 Portfolio Analyst + capital | COMPLETE (S$ top-up blocked pending owner decision) | `2cebf2f` |
-| 8 Marcus + integrations | COMPLETE with contract-only adapters for Quant / Price Monitor / Grok | `ece8f12` |
+| 7 Portfolio Analyst + capital | COMPLETE (S$500 → S$20,000 implemented after owner decision) | `2cebf2f` + follow-up |
+| 8 Marcus + integrations | COMPLETE; Claude runtime via skill; contract-only adapters for Quant / Price Monitor | `ece8f12` + follow-up |
 | 9 QA & docs | COMPLETE (self-QA); independent QA by Dex pending | this commit |

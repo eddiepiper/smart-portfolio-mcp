@@ -1,4 +1,4 @@
-# Marcus V2 test evidence — 2026-11-10T07:49Z, commit ece8f12, Python 3.13.18, MARCUS_V2_LIVE=1
+# Marcus V2 test evidence — 2026-11-10T08:33Z, Python 3.13.18, MARCUS_V2_LIVE=1
 tests/marcus_v2/end_to_end/test_workflows.py::test_workflow_b_full_pipeline_to_paper_fill PASSED
 tests/marcus_v2/end_to_end/test_workflows.py::test_workflow_b_blocks_when_quant_challenges_and_lists_disagreement PASSED
 tests/marcus_v2/end_to_end/test_workflows.py::test_workflow_b_contradicted_research_not_bought PASSED
@@ -9,7 +9,7 @@ tests/marcus_v2/integration/test_existing_adapters.py::test_tradingagents_output
 tests/marcus_v2/integration/test_existing_adapters.py::test_tradingagents_unavailable_is_explicit PASSED
 tests/marcus_v2/integration/test_existing_adapters.py::test_quant_file_transport_round_trip PASSED
 tests/marcus_v2/integration/test_existing_adapters.py::test_price_monitor_contracts PASSED
-tests/marcus_v2/integration/test_existing_adapters.py::test_grok_manifest_is_paper_only PASSED
+tests/marcus_v2/integration/test_existing_adapters.py::test_tool_manifest_is_paper_only PASSED
 tests/marcus_v2/integration/test_live_providers.py::test_openbb_and_yahoo_live_cross_check PASSED
 tests/marcus_v2/integration/test_shadow_legacy.py::test_v2_reproduces_legacy_bac_plan_b_fill PASSED
 tests/marcus_v2/security/test_paper_only.py::test_no_broker_sdk_imported_anywhere PASSED
@@ -76,6 +76,9 @@ tests/marcus_v2/unit/test_portfolio_analyst.py::test_fees_reduce_equity PASSED
 tests/marcus_v2/unit/test_portfolio_analyst.py::test_missing_prices_flagged_not_invented PASSED
 tests/marcus_v2/unit/test_portfolio_analyst.py::test_reports_reproducible_and_benchmark_aligned PASSED
 tests/marcus_v2/unit/test_portfolio_analyst.py::test_analyst_is_read_only PASSED
+tests/marcus_v2/unit/test_portfolio_analyst.py::test_sgd_legacy_import_uses_dated_validated_fx PASSED
+tests/marcus_v2/unit/test_portfolio_analyst.py::test_missing_fx_rate_refuses_import PASSED
+tests/marcus_v2/unit/test_portfolio_analyst.py::test_sgd_top_up_to_20000_and_sgd_reporting PASSED
 tests/marcus_v2/unit/test_research_challenger.py::test_detects_unsupported_and_contradicted_claims PASSED
 tests/marcus_v2/unit/test_research_challenger.py::test_supported_thesis_gets_no_manufactured_dissent PASSED
 tests/marcus_v2/unit/test_research_challenger.py::test_paraphrase_llm_flagged_as_not_independent PASSED
@@ -88,4 +91,4 @@ tests/marcus_v2/unit/test_strategy_lab.py::test_lookahead_fixture_is_detected PA
 tests/marcus_v2/unit/test_strategy_lab.py::test_insufficient_data PASSED
 tests/marcus_v2/unit/test_strategy_lab.py::test_parameter_sensitivity_reported PASSED
 tests/marcus_v2/unit/test_strategy_lab.py::test_unvalidated_data_refused PASSED
-============================= 89 passed in 23.03s ==============================
+============================= 92 passed in 21.62s ==============================
