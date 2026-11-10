@@ -27,6 +27,8 @@ observation_schema = DataFrameSchema(
     },
     checks=[
         Check(lambda df: (df["high"].isna() | df["low"].isna()) | (df["high"] >= df["low"]), name="high_ge_low"),
+        Check(lambda df: df["open"].isna() | df["high"].isna() | df["low"].isna()
+              | ((df["open"] <= df["high"] * 1.0000001) & (df["open"] >= df["low"] * 0.9999999)), name="open_within_range"),
         Check(lambda df: df["close"].isna() | df["high"].isna() | df["low"].isna()
               | ((df["close"] <= df["high"] * 1.0000001) & (df["close"] >= df["low"] * 0.9999999)), name="close_within_range"),
     ],
