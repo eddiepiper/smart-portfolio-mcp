@@ -65,7 +65,8 @@ WRITE_COMMANDS = {"mandate_propose", "mandate_approve", "import_legacy", "apply_
 def _run(a, p, rt) -> int:
     owner_only = {"mandate_propose", "mandate_approve", "import_legacy", "approve", "apply_topup",
                   "watch_add", "watch_import", "watch_deactivate"}
-    if a.command in owner_only and not (a.owner or "").startswith("owner:"):
+    dry_run = bool(p.get("dry_run"))                     # previews write nothing to the ledger
+    if a.command in owner_only and not dry_run and not (a.owner or "").startswith("owner:"):
         _out({"error": f"{a.command} needs --owner owner:<name> (a human approval)"})
         return 2
     if a.command == "manifest":
