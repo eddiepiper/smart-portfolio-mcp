@@ -75,3 +75,4 @@ trader/
 
 # Marcus V2 runtime state (ledger, evidence, audit, caches)
 var/
+.venv-marcus-v2/
