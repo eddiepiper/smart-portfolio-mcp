@@ -70,3 +70,5 @@ build/
 .Trashes
 ehthumbs.db
 Thumbs.db 
+# Day-trader skill working data (orders, broker log, portfolio)
+trader/
