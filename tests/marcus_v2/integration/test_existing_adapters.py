@@ -74,3 +74,13 @@ def test_price_monitor_contracts():
 def test_tool_manifest_is_paper_only():
     names = [t["name"] for t in tool_manifest()]
     assert "marcus_new_opportunity" in names and not any("live" in n or "broker" in n for n in names)
+
+
+def test_tradingagents_accepts_alias_key(tmp_path, monkeypatch):
+    for k in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "OPENROUTER_API_KEY", "GOOGLE_API_KEY"):
+        monkeypatch.delenv(k, raising=False)
+    monkeypatch.setenv("MARCUS_ANTHROPIC_API_KEY", "test-not-a-real-key")
+    import marcus_v2.integrations.existing as ex
+    monkeypatch.setattr(ex, "TA_PYTHON", tmp_path)          # pretend the venv exists
+    ok, why = TradingAgentsAdapter(tmp_path).available()
+    assert ok, why

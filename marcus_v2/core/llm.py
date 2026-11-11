@@ -89,7 +89,8 @@ class AnthropicLLM(BaseLLM):  # NOT VERIFIED: no API key in the build environmen
 
     def _complete(self, system, prompt, model, max_tokens) -> LLMResponse:
         import anthropic  # imported lazily; optional dependency
-        client = anthropic.Anthropic(base_url="https://api.anthropic.com")
+        key = os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("MARCUS_ANTHROPIC_API_KEY")
+        client = anthropic.Anthropic(api_key=key, base_url="https://api.anthropic.com")
         msg = client.messages.create(model=model, max_tokens=max_tokens, system=system,
                                      messages=[{"role": "user", "content": prompt}])
         text = "".join(b.text for b in msg.content if getattr(b, "type", "") == "text")
@@ -97,6 +98,6 @@ class AnthropicLLM(BaseLLM):  # NOT VERIFIED: no API key in the build environmen
 
 
 def default_llm(cache_dir: Optional[str | Path] = None) -> BaseLLM:
-    if os.environ.get("ANTHROPIC_API_KEY"):
+    if os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("MARCUS_ANTHROPIC_API_KEY"):
         return AnthropicLLM(cache_dir=cache_dir)
     return NullLLM(cache_dir=cache_dir)

@@ -41,7 +41,8 @@ class TradingAgentsAdapter:
     def available(self) -> tuple[bool, str]:
         if not TA_PYTHON.exists():
             return False, f"TradingAgents virtualenv not found at {TA_PYTHON}: run setup_tradingagents.sh"
-        if not any(os.environ.get(k) for k in ("ANTHROPIC_API_KEY", "OPENAI_API_KEY", "OPENROUTER_API_KEY", "GOOGLE_API_KEY")):
+        if not any(os.environ.get(k) for k in ("ANTHROPIC_API_KEY", "MARCUS_ANTHROPIC_API_KEY", "OPENAI_API_KEY",
+                                               "OPENROUTER_API_KEY", "GOOGLE_API_KEY")):
             return False, "no LLM API key configured for TradingAgents"
         return True, "ok"
 

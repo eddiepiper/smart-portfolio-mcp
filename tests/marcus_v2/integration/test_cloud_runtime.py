@@ -120,3 +120,15 @@ def test_cli_daily_run_with_state_repo_live(tmp_path, remote):
     out = cli(s2, "watch_list")
     assert out.returncode == 0 and "US:BAC:daily_close_below:48.50" in out.stdout
     assert list((s2 / "reports").glob("daily-*.md"))
+
+
+def test_dry_run_never_pushes_state(tmp_path, remote, monkeypatch):
+    from marcus_v2 import __main__ as cli
+    monkeypatch.setenv("MARCUS_V2_STATE_REPO", remote)
+    pushed = []
+    monkeypatch.setattr(state_sync, "push", lambda *a, **k: pushed.append(a) or state_sync.SyncResult("pushed", "test"))
+    monkeypatch.setattr(cli, "_run", lambda a, p, rt: 0)
+    cli.main(["import_legacy", "--home", str(tmp_path / "h"), "--payload", '{"dry_run": true}'])
+    assert pushed == []
+    cli.main(["import_legacy", "--home", str(tmp_path / "h"), "--owner", "owner:edward", "--payload", "{}"])
+    assert len(pushed) == 1

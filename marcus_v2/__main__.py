@@ -51,7 +51,7 @@ def main(argv=None) -> int:
         state_sync.pull(home, *sync)                         # fresh cloud session: restore state first
     rt = build_runtime(home)
     code = _run(a, p, rt)
-    if sync and code == 0 and a.command in WRITE_COMMANDS:
+    if sync and code == 0 and a.command in WRITE_COMMANDS and not p.get("dry_run"):   # previews never push
         res = state_sync.push(home, f"marcus_v2 {a.command} ({datetime.now(ZoneInfo('Asia/Singapore')):%Y-%m-%d %H:%M} SGT)", sync[1])
         print(json.dumps({"state_sync": res.__dict__}), file=sys.stderr)
     return code
