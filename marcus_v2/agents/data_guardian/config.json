@@ -1,0 +1,12 @@
+{
+  "agent_id": "data_guardian",
+  "version": "0.1.0",
+  "llm_enabled": true,
+  "invocation_policy": [
+    "every incoming market-data batch (deterministic)",
+    "LLM only to explain exceptions"
+  ],
+  "thresholds_file": "marcus_v2/config/instruments.json",
+  "finalise_after_close_minutes": 20,
+  "llm_role": "explanations only"
+}

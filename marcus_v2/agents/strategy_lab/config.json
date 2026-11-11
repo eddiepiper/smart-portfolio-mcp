@@ -1,0 +1,16 @@
+{
+  "agent_id": "strategy_lab",
+  "version": "0.1.0",
+  "llm_enabled": false,
+  "invocation_policy": [
+    "new strategy proposal",
+    "significant entry/exit change",
+    "material allocation proposal",
+    "Quant requests validation",
+    "scheduled strategy review (never per price alert)"
+  ],
+  "min_bars": 120,
+  "min_trades": 3,
+  "fill": "next bar open",
+  "walk_forward_split": 0.7
+}

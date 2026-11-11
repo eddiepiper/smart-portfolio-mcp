@@ -138,3 +138,23 @@ Most portfolio AI demos are single-model wrappers. This is a **coordinated agent
 ## License
 
 MIT
+
+---
+
+## Marcus V2: six specialist agents (paper only)
+
+`marcus_v2/` adds six specialists under Marcus, each with tools, contracts, tests and docs:
+Market Intelligence (OpenBB), Data Guardian (Pandera), Strategy Lab (VectorBT), Research
+Challenger (AI Hedge Fund patterns), Execution Specialist (LEAN fill semantics, paper only) and
+Portfolio Analyst (QuantStats). Real-money trading is technically unavailable.
+
+- Architecture: `docs/marcus_v2/architecture.md`
+- Setup, Mac deployment, Claude integration (Remote Control), rollback: `docs/marcus_v2/operations.md`
+- QA, security, cost and status: `docs/marcus_v2/qa_report.md`
+- Phase 0 assessment of the six projects: `docs/marcus_v2/phase0_assessment.md`
+
+```bash
+pip install -r requirements-marcus-v2.txt
+pytest -c pytest-marcus-v2.ini --rootdir .
+python -m marcus_v2 manifest
+```

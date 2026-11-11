@@ -1,0 +1,16 @@
+{
+  "agent_id": "execution_specialist",
+  "version": "0.1.0",
+  "llm_enabled": true,
+  "invocation_policy": [
+    "paper-order events",
+    "order lifecycle changes (re-evaluation of NO_FILL/UNVERIFIABLE when new data arrives)"
+  ],
+  "commission_pct": "0.0008",
+  "min_commission_usd": "15",
+  "slippage_pct": "0.0005",
+  "lean_verbs_allowed": [
+    "backtest"
+  ],
+  "lean_container_network": "none"
+}

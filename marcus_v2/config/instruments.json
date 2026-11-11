@@ -1,0 +1,88 @@
+{
+  "_note": "Approved instrument metadata. Adding an instrument here does not approve it for trading; the mandate's approved_instruments list does. Gold uses the COMEX front-month future (GC=F) as its only free daily source: it is NOT spot XAU/USD and differs from OCBC's spot/precious-metals quotes.",
+  "instruments": [
+    {
+      "instrument_id": "US:BAC",
+      "symbol": "BAC",
+      "market": "NYSE",
+      "asset_class": "equity",
+      "currency": "USD",
+      "price_unit": "per_share"
+    },
+    {
+      "instrument_id": "US:PFE",
+      "symbol": "PFE",
+      "market": "NYSE",
+      "asset_class": "equity",
+      "currency": "USD",
+      "price_unit": "per_share"
+    },
+    {
+      "instrument_id": "US:MRK",
+      "symbol": "MRK",
+      "market": "NYSE",
+      "asset_class": "equity",
+      "currency": "USD",
+      "price_unit": "per_share"
+    },
+    {
+      "instrument_id": "US:F",
+      "symbol": "F",
+      "market": "NYSE",
+      "asset_class": "equity",
+      "currency": "USD",
+      "price_unit": "per_share"
+    },
+    {
+      "instrument_id": "US:SPYM",
+      "symbol": "SPYM",
+      "market": "NYSEARCA",
+      "asset_class": "etf",
+      "currency": "USD",
+      "price_unit": "per_share"
+    },
+    {
+      "instrument_id": "US:SPY",
+      "symbol": "SPY",
+      "market": "NYSEARCA",
+      "asset_class": "etf",
+      "currency": "USD",
+      "price_unit": "per_share"
+    },
+    {
+      "instrument_id": "COMEX:GC",
+      "symbol": "GC=F",
+      "market": "COMEX",
+      "asset_class": "commodity",
+      "currency": "USD",
+      "price_unit": "per_troy_oz",
+      "timezone": "America/New_York"
+    },
+    {
+      "instrument_id": "FX:USDSGD",
+      "symbol": "SGD=X",
+      "market": "FX",
+      "asset_class": "fx",
+      "currency": "SGD",
+      "price_unit": "per_usd",
+      "timezone": "Europe/London"
+    }
+  ],
+  "thresholds": {
+    "default": {
+      "max_provider_diff_pct": 0.25,
+      "max_daily_move_pct": 25,
+      "max_age_hours_official": 96
+    },
+    "COMEX:GC": {
+      "max_provider_diff_pct": 0.5,
+      "max_daily_move_pct": 12,
+      "max_age_hours_official": 96
+    },
+    "FX:USDSGD": {
+      "max_provider_diff_pct": 0.2,
+      "max_daily_move_pct": 3,
+      "max_age_hours_official": 96
+    }
+  }
+}

@@ -25,6 +25,10 @@ for k, v in DEFAULTS.items():
 # inherited from the surrounding session (e.g. a Claude Code runtime endpoint).
 if os.environ.get("TRADINGAGENTS_LLM_PROVIDER", "").lower() == "anthropic":
     os.environ.pop("ANTHROPIC_BASE_URL", None)
+    # Cloud sessions may withhold ANTHROPIC_API_KEY (the session's own Claude connection uses that
+    # name). The owner can store the key as MARCUS_ANTHROPIC_API_KEY instead; it is mapped in-process.
+    if not os.environ.get("ANTHROPIC_API_KEY") and os.environ.get("MARCUS_ANTHROPIC_API_KEY"):
+        os.environ["ANTHROPIC_API_KEY"] = os.environ["MARCUS_ANTHROPIC_API_KEY"]
     if not os.environ.get("ANTHROPIC_API_KEY"):
         sys.exit("ANTHROPIC_API_KEY is not set: add your own key from console.anthropic.com "
                  "(see the stock-analysis skill), or pick another provider.")

@@ -1,0 +1,15 @@
+{
+  "agent_id": "research_challenger",
+  "version": "0.1.0",
+  "llm_enabled": true,
+  "invocation_policy": [
+    "material new opportunity",
+    "significant thesis change",
+    "major reallocation",
+    "conflicting research",
+    "Marcus requests a second perspective"
+  ],
+  "independence_threshold": 0.6,
+  "cache": "content-addressed",
+  "llm_model": "claude-sonnet-5"
+}
