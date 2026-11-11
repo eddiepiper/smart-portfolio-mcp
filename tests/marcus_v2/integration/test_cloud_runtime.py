@@ -77,6 +77,22 @@ def test_refuses_to_overwrite_unsynced_local_state(tmp_path, remote):
         state_sync.pull(a, remote)
 
 
+def test_unreachable_repo_never_starts_blank_state(tmp_path):
+    a = tmp_path / "a"
+    missing = str(tmp_path / "no-such-repo.git")                   # stands in for a 403 / network failure
+    with pytest.raises(state_sync.StateSyncError, match="cannot reach state repo"):
+        state_sync.pull(a, missing)
+    assert not a.exists() or not any(a.iterdir())                  # nothing initialised
+
+
+def test_unreachable_repo_blocks_fast_forward(tmp_path, remote):
+    a = tmp_path / "a"
+    state_sync.pull(a, remote); _contribute(a, "c1", "500"); state_sync.push(a, "a1")
+    subprocess.run(["git", "-C", str(a), "remote", "set-url", "origin", str(tmp_path / "gone.git")], check=True)
+    with pytest.raises(state_sync.StateSyncError, match="cannot reach state repo"):
+        state_sync.pull(a, remote)                                 # never reported as "fast-forwarded"
+
+
 def test_daily_and_weekly_run(tmp_path):
     from marcus_v2.agents.price_monitor.agent import PriceMonitor
     from marcus_v2.integrations.openbb_adapter import FixtureProvider

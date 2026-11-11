@@ -48,26 +48,45 @@ def configured() -> Optional[tuple[str, str]]:
     return (repo, os.environ.get("MARCUS_V2_STATE_BRANCH", "state")) if repo else None
 
 
+def _remote_has_branch(repo: str, branch: str) -> bool:
+    """True if the remote has `branch`, False if the remote is reachable but has no such branch (or is empty).
+
+    Any other failure (no credentials, 403, network, unknown repo) raises: an unreachable state repo
+    must never be mistaken for an empty one, or a run would start from blank state and report on it.
+    """
+    p = subprocess.run(["git", "ls-remote", "--exit-code", "--heads", repo, branch],
+                       capture_output=True, text=True, timeout=120)
+    if p.returncode == 0:
+        return True
+    if p.returncode == 2:                                    # reachable, no matching ref
+        return False
+    raise StateSyncError(f"cannot reach state repo (auth, network or access problem); refusing to start from "
+                         f"blank state: {p.stderr.strip()[-300:]}")
+
+
 def pull(home: Path, repo: str, branch: str = "state") -> SyncResult:
     home = Path(home)
     if not (home / ".git").exists():
         if home.exists() and any(home.iterdir()):
             raise StateSyncError(f"{home} has local state but is not a synced checkout; refusing to overwrite it")
         home.parent.mkdir(parents=True, exist_ok=True)
-        p = subprocess.run(["git", "clone", "--quiet", "--branch", branch, repo, str(home)], capture_output=True, text=True, timeout=300)
-        if p.returncode != 0:
-            # empty remote or branch missing: start a fresh state checkout on that branch
+        if _remote_has_branch(repo, branch):
+            p = subprocess.run(["git", "clone", "--quiet", "--branch", branch, repo, str(home)],
+                               capture_output=True, text=True, timeout=300)
+            if p.returncode != 0:
+                raise StateSyncError(f"clone of state repo failed: {p.stderr.strip()[-300:]}")
+            action = "cloned"
+        else:
+            # remote reachable but empty / branch missing: start a fresh state checkout on that branch
             home.mkdir(parents=True, exist_ok=True)
             _git(home, "init", "--quiet", "-b", branch)
             _git(home, "remote", "add", "origin", repo)
             (home / ".gitignore").write_text(IGNORE)
             action = "initialised"
-        else:
-            action = "cloned"
     else:
-        _git(home, "fetch", "--quiet", "origin", branch, check=False)
-        has_remote = _git(home, "rev-parse", "--verify", "--quiet", f"origin/{branch}", check=False).returncode == 0
-        if has_remote:
+        remote_url = _git(home, "remote", "get-url", "origin").stdout.strip()
+        if _remote_has_branch(remote_url, branch):           # raises if the remote can't be reached
+            _git(home, "fetch", "--quiet", "origin", branch)
             p = _git(home, "merge", "--ff-only", "--quiet", f"origin/{branch}", check=False)
             if p.returncode != 0:
                 raise StateSyncError("local state diverged from the remote; resolve manually (ledgers are never auto-merged)")

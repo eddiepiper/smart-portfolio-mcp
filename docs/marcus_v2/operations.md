@@ -7,7 +7,7 @@
 ```bash
 git clone https://github.com/eddiepiper/smart-portfolio-mcp && cd smart-portfolio-mcp
 git checkout feature/marcus-v2-six-specialists
-python3.13 -m venv .venv-marcus-v2            # Python 3.11+ works; 3.13 was tested
+python3.13 -m venv .venv-marcus-v2            # Python 3.12+ required (numpy pin); 3.13 was tested
 .venv-marcus-v2/bin/pip install -r requirements-marcus-v2.txt
 export MARCUS_V2_HOME=$HOME/marcus_v2_state     # ledger, evidence, audit live here
 .venv-marcus-v2/bin/python -m pytest -c pytest-marcus-v2.ini --rootdir .   # expect all pass
