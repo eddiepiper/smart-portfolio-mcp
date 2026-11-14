@@ -46,7 +46,19 @@ def run_backtest(md: MarketData, cfg: Config, start: date, end: date, every: int
         return nav
 
     for i, d in enumerate(sessions):
-        # 1) fill orders decided on the previous session, at today's open
+        # 1) a split takes effect before the ex-date open: rescale the shares held and any
+        #    order still waiting for today's open (sized on the pre-split share count)
+        for s, acts in md.actions.items():
+            for a in acts:
+                if a["type"] != "split" or a["ex_date"] != d.isoformat():
+                    continue
+                if s in broker.positions():
+                    broker._shares[s] = int(round(broker._shares[s] * a["ratio"]))
+                pending = [(when, [Order(ticker=o.ticker, side=o.side,
+                                         quantity=int(round(o.quantity * a["ratio"])), price=o.price / a["ratio"])
+                                   if when == d and o.ticker == s else o for o in orders])
+                           for when, orders in pending]
+        # 2) fill orders decided on the previous session, at today's open
         for when, orders in [x for x in pending if x[0] == d]:
             for o in orders:
                 bar = md.execution_bar(o.ticker, d, decision_cutoff=next_prev(d, sessions))
@@ -63,20 +75,16 @@ def run_backtest(md: MarketData, cfg: Config, start: date, end: date, every: int
                 trades.append({"session": d.isoformat(), "instrument": o.ticker, "side": o.side,
                                "quantity": o.quantity, "fill_price": round(fill.price, 4), "commission": fee})
         pending = [x for x in pending if x[0] != d]
-        # 2) apply splits on their ex-date to the simulated book (shares x ratio)
-        for s, acts in md.actions.items():
-            for a in acts:
-                if a["type"] == "split" and a["ex_date"] == d.isoformat() and s in broker.positions():
-                    broker._shares[s] = int(round(broker._shares[s] * a["ratio"]))
+        # 3) mark at the close
         navs.append(mark(d))
         bvals.append(md.raw_close(bench, d)[0])
         dates.append(d.isoformat())
-        # 3) decide on this session's close (point-in-time), every `every` sessions
+        # 4) decide on this session's close (point-in-time), every `every` sessions
         if i % every or i == len(sessions) - 1:
             continue
         view = md.view(d)
         nav = navs[-1]
-        orders = []
+        orders, plan = [], []
         for s in cfg.portfolio.universe:
             try:
                 stance, _ = technical_stance(indicators(view, s, bench))
@@ -85,11 +93,19 @@ def run_backtest(md: MarketData, cfg: Config, start: date, end: date, every: int
             px = view.close(s, 5)[0]
             want = math.floor(w_target * nav / px) if stance == Stance.BULLISH else 0
             have = broker.positions().get(s).shares if broker.positions().get(s) else 0
-            decisions.append({"date": d.isoformat(), "instrument": s, "stance": stance.value, "target_qty": want})
+            plan.append((s, stance, px, want, have))
+        # gross cap: exposure kept after sells, then buys only while the cap has room
+        room = cfg.risk.max_gross_exposure * nav - sum(min(want, have) * px for _, _, px, want, have in plan)
+        for s, stance, px, want, have in plan:
             if want > have:
-                orders.append(Order(ticker=s, side="buy", quantity=want - have, price=px))
+                extra = max(0, min(want - have, math.floor(room / px)))
+                room -= extra * px
+                want = have + extra
+                if extra:
+                    orders.append(Order(ticker=s, side="buy", quantity=extra, price=px))
             elif want < have:
                 orders.append(Order(ticker=s, side="sell", quantity=have - want, price=px))
+            decisions.append({"date": d.isoformat(), "instrument": s, "stance": stance.value, "target_qty": want})
         orders.sort(key=lambda o: o.side != "sell")  # sells before buys
         if orders:
             pending.append((next_trading_day(d), orders))

@@ -68,7 +68,7 @@ Risk gate `risk-4ae2e5e943832263`: **REJECT**
 
 ## 8. Portfolio (2026-11-13 close, fictional)
 
-Cash 91,998.82 | NAV 100,061.42 | realised 0.00 | unrealised 61.42 | fees 1.00 | gross exposure 8.1% | ledger head `6c3713003377`
+Cash 91,998.82 | NAV 100,061.42 | realised 0.00 | unrealised 61.42 | fees 1.00 | gross exposure 8.1% | ledger head `501b58961af6`
 - AAPL: 35 @ avg 228.6052 mark 230.36 (2026-11-13) P&L 61.42 weight 8.1%
 
 ## 9. Performance snapshot (forward paper trading)
@@ -113,30 +113,38 @@ Limitations: Synthetic fixture data is not market history; results say nothing a
 ## 10. Audit trail (ledger events)
 
 ```
-  0 INIT             4c4f2cf18e {"base_currency": "USD", "benchmark": "SPY", "config_version": "cfg-628967630244", "data_source": "SYNTHETIC_FIXTURE v1 (deterministic, seeded; not ma
-  1 RESEARCH         a61923e2da {"id": "merlin-af3e26432a4f4012", "inputs_digest": "9d796b9dff82a12f0d0381e029dc83ff23e3d40270cb5d26c0c7301b5162e87b", "instrument": "AAPL", "record":
-  2 RESEARCH         90c11ee3df {"id": "quant-46d59be481d13f65", "inputs_digest": "c899dc4e314ce996dee9639fcfab2ead4da63a0d31840d17d0189145faadb453", "instrument": "AAPL", "record": 
-  3 RESEARCH         e198b1524f {"id": "challenge-bd03fb9893c24522", "record": "challenge", "verdict": "AGREE"}
-  4 PROPOSAL         0635f4c061 {"action": "BUY", "assessment_id": "joint-fd54e6f546efb456", "instrument": "AAPL", "proposal_id": "prop-f74596317d816985", "quantity": 35}
-  5 APPROVAL         abdaa476b3 {"approved_by": "demo-owner", "proposal_id": "prop-f74596317d816985"}
-  6 RISK_RESULT      7bc773f5b2 {"config_version": "cfg-628967630244", "outcome": "PASS", "proposal_id": "prop-f74596317d816985", "reasons": []}
-  7 ORDER_INTENT     41404446a4 {"adv": 50091131.75, "execution_id": "exe-c22f366fd0f521ec", "fill_session": "2026-11-09", "instrument": "AAPL", "open_price": 228.46, "proposal_id": 
-  8 FILL             44f6ba27e7 {"commission": 1.0, "execution_id": "exe-c22f366fd0f521ec", "fill_price": 228.57660494339456, "fill_session": "2026-11-09", "instrument": "AAPL", "ope
-  9 APPROVAL         8006e892f5 {"approved_by": "demo-owner", "proposal_id": "prop-demo-oversized"}
- 10 RISK_RESULT      0fccd5a4cd {"config_version": "cfg-628967630244", "outcome": "REJECT", "proposal_id": "prop-demo-oversized", "reasons": ["order_size_valid: 120 sh x 228.24 = 27,
- 11 RESEARCH         b753ee5421 {"id": "merlin-497dda81d337e05f", "inputs_digest": "889c24d4245c0aea63850d1178f8da7157b5ccee364623253775dac83e4ccc22", "instrument": "NVDA", "record":
- 12 RESEARCH         09cb7a5a69 {"id": "quant-9e61a33040d726dd", "inputs_digest": "c2b8f4adb2b5aa7598c69cf23aecc46da8557813653234b8ca5dc2fc8ecb3d93", "instrument": "NVDA", "record": 
- 13 RESEARCH         c1c60dcf18 {"id": "challenge-b34eb87fe2f4ce9f", "record": "challenge", "verdict": "DISAGREE"}
- 14 PROPOSAL         d6f3e43100 {"action": "NO_ACTION", "assessment_id": "joint-9b241dd1f01f9a43", "instrument": "NVDA", "proposal_id": "prop-9d737a614a1fa682", "quantity": 0}
- 15 RESEARCH         15310628d8 {"id": "merlin-23401330064916e8", "inputs_digest": "39d636f0e846b9ec0e2cb08ec7e1b3c22e8067b013db013499dbe0dacb7fe109", "instrument": "MSFT", "record":
- 16 RESEARCH         529b6485ab {"id": "quant-f2e521a06bc4fbec", "inputs_digest": "4117e204b56df8f72b2d5735902c0b0c349bda502e0f576ca9279b4ae4a127ac", "instrument": "MSFT", "record": 
- 17 RESEARCH         ad9911e65f {"id": "challenge-babada04416764b8", "record": "challenge", "verdict": "PARTIALLY_AGREE"}
- 18 PROPOSAL         f1c9f99110 {"action": "NO_ACTION", "assessment_id": "joint-6de81a8b21b6a5a3", "instrument": "MSFT", "proposal_id": "prop-680480b7f03c1812", "quantity": 0}
- 19 NAV              3428bbb4d1 {"benchmark": "SPY", "benchmark_close": 629.24, "cash": 91998.82, "date": "2026-11-09", "nav": 99959.92, "stale_marks": []}
- 20 NAV              bca841df90 {"benchmark": "SPY", "benchmark_close": 629.22, "cash": 91998.82, "date": "2026-11-10", "nav": 99926.67, "stale_marks": []}
- 21 NAV              953a867981 {"benchmark": "SPY", "benchmark_close": 628.9, "cash": 91998.82, "date": "2026-11-11", "nav": 99874.17, "stale_marks": []}
- 22 NAV              b0d990d360 {"benchmark": "SPY", "benchmark_close": 634.2, "cash": 91998.82, "date": "2026-11-12", "nav": 99978.12, "stale_marks": []}
- 23 NAV              6c37130033 {"benchmark": "SPY", "benchmark_close": 632.58, "cash": 91998.82, "date": "2026-11-13", "nav": 100061.42, "stale_marks": []}
+  0 INIT             2459078606 {"base_currency": "USD", "benchmark": "SPY", "config_version": "cfg-628967630244", "data_source": "SYNTHETIC_FIXTURE v1 (deterministic, seeded; not ma
+  1 RESEARCH         d2080bf9df {"id": "merlin-af3e26432a4f4012", "inputs_digest": "9d796b9dff82a12f0d0381e029dc83ff23e3d40270cb5d26c0c7301b5162e87b", "instrument": "AAPL", "record":
+  2 RESEARCH         0c39e146ae {"id": "quant-46d59be481d13f65", "inputs_digest": "c899dc4e314ce996dee9639fcfab2ead4da63a0d31840d17d0189145faadb453", "instrument": "AAPL", "record": 
+  3 RESEARCH         50f40d74b9 {"id": "challenge-bd03fb9893c24522", "record": "challenge", "verdict": "AGREE"}
+  4 PROPOSAL         34ed223912 {"action": "BUY", "assessment_id": "joint-fd54e6f546efb456", "instrument": "AAPL", "proposal_id": "prop-f74596317d816985", "quantity": 35}
+  5 APPROVAL         d7cc024251 {"approved_by": "demo-owner", "proposal_id": "prop-f74596317d816985"}
+  6 RISK_RESULT      00d855a383 {"config_version": "cfg-628967630244", "outcome": "PASS", "proposal_id": "prop-f74596317d816985", "reasons": []}
+  7 ORDER_INTENT     bf287e3150 {"adv": 50091131.75, "execution_id": "exe-c22f366fd0f521ec", "fill_session": "2026-11-09", "instrument": "AAPL", "open_price": 228.46, "proposal_id": 
+  8 FILL             9c4147b126 {"commission": 1.0, "execution_id": "exe-c22f366fd0f521ec", "fill_price": 228.57660494339456, "fill_session": "2026-11-09", "instrument": "AAPL", "ope
+  9 APPROVAL         9ba22870ec {"approved_by": "demo-owner", "proposal_id": "prop-demo-oversized"}
+ 10 RISK_RESULT      b1fcc39a61 {"config_version": "cfg-628967630244", "outcome": "REJECT", "proposal_id": "prop-demo-oversized", "reasons": ["order_size_valid: 120 sh x 228.24 = 27,
+ 11 RESEARCH         13c8a98f55 {"id": "merlin-497dda81d337e05f", "inputs_digest": "889c24d4245c0aea63850d1178f8da7157b5ccee364623253775dac83e4ccc22", "instrument": "NVDA", "record":
+ 12 RESEARCH         edaba518b2 {"id": "quant-9e61a33040d726dd", "inputs_digest": "c2b8f4adb2b5aa7598c69cf23aecc46da8557813653234b8ca5dc2fc8ecb3d93", "instrument": "NVDA", "record": 
+ 13 RESEARCH         584562de22 {"id": "challenge-b34eb87fe2f4ce9f", "record": "challenge", "verdict": "DISAGREE"}
+ 14 PROPOSAL         d6feb34ace {"action": "NO_ACTION", "assessment_id": "joint-9b241dd1f01f9a43", "instrument": "NVDA", "proposal_id": "prop-9d737a614a1fa682", "quantity": 0}
+ 15 RESEARCH         fa8ac5d0f0 {"id": "merlin-23401330064916e8", "inputs_digest": "39d636f0e846b9ec0e2cb08ec7e1b3c22e8067b013db013499dbe0dacb7fe109", "instrument": "MSFT", "record":
+ 16 RESEARCH         676807927c {"id": "quant-f2e521a06bc4fbec", "inputs_digest": "4117e204b56df8f72b2d5735902c0b0c349bda502e0f576ca9279b4ae4a127ac", "instrument": "MSFT", "record": 
+ 17 RESEARCH         1b1959cf87 {"id": "challenge-babada04416764b8", "record": "challenge", "verdict": "PARTIALLY_AGREE"}
+ 18 PROPOSAL         36bee4c8e8 {"action": "NO_ACTION", "assessment_id": "joint-6de81a8b21b6a5a3", "instrument": "MSFT", "proposal_id": "prop-680480b7f03c1812", "quantity": 0}
+ 19 CORPORATE_ACTION 30445f249e {"action_id": "AAPL:dividend:2026-02-09", "cash": 0.0, "ex_date": "2026-02-09", "instrument": "AAPL", "pay_date": "2026-02-12", "per_share": 0.26, "sh
+ 20 CORPORATE_ACTION fc8c9ba1ec {"action_id": "MSFT:dividend:2026-02-19", "cash": 0.0, "ex_date": "2026-02-19", "instrument": "MSFT", "pay_date": "2026-03-12", "per_share": 0.83, "sh
+ 21 CORPORATE_ACTION 14861cfed2 {"action_id": "AAPL:dividend:2026-05-11", "cash": 0.0, "ex_date": "2026-05-11", "instrument": "AAPL", "pay_date": "2026-05-14", "per_share": 0.26, "sh
+ 22 CORPORATE_ACTION a4a02cefe0 {"action_id": "MSFT:dividend:2026-05-21", "cash": 0.0, "ex_date": "2026-05-21", "instrument": "MSFT", "pay_date": "2026-06-11", "per_share": 0.83, "sh
+ 23 CORPORATE_ACTION a3e1401a49 {"action_id": "NVDA:split:2026-06-10", "added_shares": 0, "eligible_shares": 0, "ex_date": "2026-06-10", "instrument": "NVDA", "ratio": 4.0, "type": "
+ 24 CORPORATE_ACTION 3e02b66ab3 {"action_id": "AAPL:dividend:2026-08-10", "cash": 0.0, "ex_date": "2026-08-10", "instrument": "AAPL", "pay_date": "2026-08-13", "per_share": 0.26, "sh
+ 25 CORPORATE_ACTION af281f43b6 {"action_id": "MSFT:dividend:2026-08-20", "cash": 0.0, "ex_date": "2026-08-20", "instrument": "MSFT", "pay_date": "2026-09-10", "per_share": 0.83, "sh
+ 26 NAV              cc2c72cea1 {"benchmark": "SPY", "benchmark_close": 629.24, "cash": 91998.82, "date": "2026-11-09", "nav": 99959.92, "stale_marks": []}
+ 27 NAV              ab6da79fa9 {"benchmark": "SPY", "benchmark_close": 629.22, "cash": 91998.82, "date": "2026-11-10", "nav": 99926.67, "stale_marks": []}
+ 28 NAV              5a2e064cb3 {"benchmark": "SPY", "benchmark_close": 628.9, "cash": 91998.82, "date": "2026-11-11", "nav": 99874.17, "stale_marks": []}
+ 29 CORPORATE_ACTION 6509a0b9a9 {"action_id": "AAPL:dividend:2026-11-09", "cash": 0.0, "ex_date": "2026-11-09", "instrument": "AAPL", "pay_date": "2026-11-12", "per_share": 0.26, "sh
+ 30 NAV              e1230b19d4 {"benchmark": "SPY", "benchmark_close": 634.2, "cash": 91998.82, "date": "2026-11-12", "nav": 99978.12, "stale_marks": []}
+ 31 NAV              501b58961a {"benchmark": "SPY", "benchmark_close": 632.58, "cash": 91998.82, "date": "2026-11-13", "nav": 100061.42, "stale_marks": []}
 ```
 
 Model calls: 45; reported cost USD: 0.0000.

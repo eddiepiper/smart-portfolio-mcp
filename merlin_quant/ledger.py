@@ -143,9 +143,8 @@ class Ledger:
                 _apply_fill(st, p)
             elif t == "CORPORATE_ACTION":
                 st.applied_actions.add(p["action_id"])
-                h = st.holdings.get(p["instrument"])
-                if p["type"] == "split" and h:
-                    h.quantity = int(round(h.quantity * p["ratio"]))
+                if p["type"] == "split" and p["added_shares"]:
+                    st.holdings.setdefault(p["instrument"], Holding()).quantity += p["added_shares"]
                 elif p["type"] == "dividend":
                     st.cash += p["cash"]
                     st.dividends += p["cash"]

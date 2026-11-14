@@ -121,6 +121,7 @@ class PaperEngine:
             self.ledger.append("CONFIG", f"config:{self.cfg.version}", {"config_version": self.cfg.version})
             self.records.put("config", self.cfg.version, self.cfg.model_dump(mode="json", by_alias=True))
         self._recover(st)
+        self._ensure_execution_records()
         self.reconcile()
         return self
 
@@ -206,43 +207,71 @@ class PaperEngine:
         return ev["payload"]
 
     def apply_corporate_actions(self, through: date) -> list[str]:
-        """Apply splits (ex-date) and dividends (pay date, to holders at the ex-date) up to *through*."""
+        """Apply splits (ex-date) and dividends (pay date) up to *through*, in ex-date order.
+
+        Each action applies only to the shares held at the open of its ex-date (fills on earlier
+        sessions, after earlier splits). Shares bought on or after the ex-date already trade on the
+        new basis, so a past split never touches them. A split with no eligible shares is still
+        recorded (adding 0), so it can never apply to a later purchase.
+        """
         applied = []
-        for sym, acts in sorted(self.md.actions.items()):
-            for a in acts:
-                aid = f"{sym}:{a['type']}:{a['ex_date']}"
-                if aid in self.ledger.state().applied_actions:
-                    continue
-                st = self.ledger.state()
-                if a["type"] == "split" and a["ex_date"] <= through.isoformat():
-                    if not st.holdings.get(sym) or not st.holdings[sym].quantity:
-                        continue
-                    new = {s: p.shares for s, p in self.broker.positions().items()}
-                    new[sym] = int(round(new[sym] * a["ratio"]))
-                    self.ledger.append("CORPORATE_ACTION", f"ca:{aid}", {"action_id": aid, "instrument": sym,
-                                       "type": "split", "ratio": a["ratio"], "ex_date": a["ex_date"]})
-                    self.broker = PaperBroker.restore(self.book_path, self.broker.cash(), new, self.costs)
-                    applied.append(aid)
-                elif a["type"] == "dividend" and a["pay_date"] <= through.isoformat():
-                    held = self._shares_at(sym, date.fromisoformat(a["ex_date"]))
-                    if not held:
-                        continue
-                    cash = round(held * a["amount"], 2)
-                    self.ledger.append("CORPORATE_ACTION", f"ca:{aid}", {"action_id": aid, "instrument": sym,
-                                       "type": "dividend", "per_share": a["amount"], "shares": held, "cash": cash,
-                                       "ex_date": a["ex_date"], "pay_date": a["pay_date"]})
-                    book = {s: p.shares for s, p in self.broker.positions().items()}
+        todo = sorted(((a["ex_date"], sym, a) for sym, acts in self.md.actions.items() for a in acts),
+                      key=lambda x: (x[0], x[1]))
+        for ex, sym, a in todo:
+            aid = f"{sym}:{a['type']}:{ex}"
+            if aid in self.ledger.state().applied_actions:
+                continue
+            if a["type"] == "split" and ex <= through.isoformat():
+                eligible = self._shares_at(sym, date.fromisoformat(ex))
+                added = int(round(eligible * a["ratio"])) - eligible
+                self.ledger.append("CORPORATE_ACTION", f"ca:{aid}", {"action_id": aid, "instrument": sym,
+                                   "type": "split", "ratio": a["ratio"], "ex_date": ex,
+                                   "eligible_shares": eligible, "added_shares": added})
+                if added:
+                    book = {s_: p.shares for s_, p in self.broker.positions().items()}
+                    book[sym] = book.get(sym, 0) + added
+                    self.broker = PaperBroker.restore(self.book_path, self.broker.cash(), book, self.costs)
+                applied.append(aid)
+            elif a["type"] == "dividend" and a["pay_date"] <= through.isoformat():
+                held = self._shares_at(sym, date.fromisoformat(ex))
+                cash = round(held * a["amount"], 2)
+                self.ledger.append("CORPORATE_ACTION", f"ca:{aid}", {"action_id": aid, "instrument": sym,
+                                   "type": "dividend", "per_share": a["amount"], "shares": held, "cash": cash,
+                                   "ex_date": ex, "pay_date": a["pay_date"]})
+                if cash:
+                    book = {s_: p.shares for s_, p in self.broker.positions().items()}
                     self.broker = PaperBroker.restore(self.book_path, self.broker.cash() + cash, book, self.costs)
-                    applied.append(aid)
+                applied.append(aid)
         return applied
 
     def _shares_at(self, sym: str, ex_date: date) -> int:
-        """Shares held at the open of the ex-date (fills on sessions before it)."""
-        q = 0
+        """Shares held at the open of *ex_date*: fills on earlier sessions plus earlier splits' additions."""
+        q, ex = 0, ex_date.isoformat()
         for e in self.ledger.events():
-            if e["type"] == "FILL" and e["payload"]["instrument"] == sym and e["payload"]["fill_session"] < ex_date.isoformat():
-                q += e["payload"]["quantity"] if e["payload"]["side"] == "buy" else -e["payload"]["quantity"]
+            p = e["payload"]
+            if e["type"] == "FILL" and p["instrument"] == sym and p["fill_session"] < ex:
+                q += p["quantity"] if p["side"] == "buy" else -p["quantity"]
+            elif (e["type"] == "CORPORATE_ACTION" and p["instrument"] == sym and p["type"] == "split"
+                  and p["ex_date"] < ex):
+                q += p["added_shares"]
         return q
+
+    def _ensure_execution_records(self) -> None:
+        """Rebuild any execution record missing for a FILL already committed to the ledger
+        (a stop after the FILL append but before the record was written)."""
+        intents = {e["payload"]["execution_id"]: e["payload"] for e in self.ledger.events() if e["type"] == "ORDER_INTENT"}
+        for e in self.ledger.events():
+            if e["type"] != "FILL":
+                continue
+            fill = e["payload"]
+            if (self.records.root / "executions" / f"{fill['execution_id']}.json").exists():
+                continue
+            intent = intents.get(fill["execution_id"])
+            if intent is None:
+                raise EngineError(f"FILL {fill['execution_id']} has no ORDER_INTENT in the ledger")
+            ref = self.records.get("proposals", fill["proposal_id"])["reference_price"]
+            self._write_record(intent, fill, ref)
+            self.recovery_notes.append(f"rebuilt missing execution record {fill['execution_id']}")
 
     # ------------------------------------------------------------ execution
     def fill_session_for(self, data_cutoff: date) -> date:
@@ -274,6 +303,7 @@ class PaperEngine:
             raise EngineError(f"proposal {proposal.proposal_id} has no passing risk result; not executed")
         exe_id = stable_id("exe", {"proposal": proposal.proposal_id})
         if proposal.proposal_id in self.ledger.state().filled:  # idempotent rerun: no second transaction
+            self._ensure_execution_records()
             return ExecutionRecord.model_validate(self.records.get("executions", exe_id))
         if proposal.status != "APPROVED":
             raise EngineError(f"proposal {proposal.proposal_id} is {proposal.status}, not APPROVED")

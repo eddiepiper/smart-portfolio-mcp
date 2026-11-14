@@ -353,13 +353,13 @@ def test_15_backtest_verified_independently(cfg, md):
         by_session.setdefault(t["session"], []).append(t)
     split_ex = {a["ex_date"]: (s, a["ratio"]) for s, acts in md.actions.items() for a in acts if a["type"] == "split"}
     for d, nav in res["nav"]:
+        if d in split_ex and shares.get(split_ex[d][0]):  # a split applies before the ex-date open
+            s, ratio = split_ex[d]
+            shares[s] = int(round(shares[s] * ratio))
         for t in by_session.get(d, []):
             sign = 1 if t["side"] == "buy" else -1
             cash -= sign * t["quantity"] * t["fill_price"] + t["commission"]
             shares[t["instrument"]] = shares.get(t["instrument"], 0) + sign * t["quantity"]
-        if d in split_ex and shares.get(split_ex[d][0]):
-            s, ratio = split_ex[d]
-            shares[s] = int(round(shares[s] * ratio))
         mv = sum(q * md.raw_close(s, date.fromisoformat(d))[0] for s, q in shares.items() if q)
         assert nav == pytest.approx(cash + mv, abs=0.02), d
         navs[d] = cash + mv
@@ -457,3 +457,79 @@ def test_rerun_with_different_llm_output_gets_new_report_id(md):
     alt = ScriptedRuntime(lambda s, p: scripted_merlin(s, p).replace("[scripted] Valuation", "[scripted, run 2] Valuation"))
     c = run_merlin(view, "AAPL", UNIVERSE, CUTOFF, alt)
     assert c.report_id != a.report_id  # a different narrative is a different record
+
+
+# regressions from the PR review ----------------------------------------------------------
+def _fake_fill(engine, sym, qty, session, px=100.0):
+    from merlin_quant.engine import PaperBroker
+    exe = f"exe-test-{sym}-{session}"
+    engine.ledger.append("FILL", f"fill:{exe}", {
+        "execution_id": exe, "proposal_id": f"prop-test-{sym}-{session}", "instrument": sym, "side": "buy",
+        "quantity": qty, "fill_price": px, "commission": 0.0, "fill_session": session})
+    book = {s: p.shares for s, p in engine.broker.positions().items()}
+    book[sym] = book.get(sym, 0) + qty
+    engine.broker = PaperBroker.restore(engine.book_path, engine.broker.cash() - qty * px, book, engine.costs)
+
+
+def test_past_split_never_multiplies_a_later_purchase(team):
+    """NVDA split 4:1 on 2026-06-10; shares bought in November already trade on the new basis."""
+    _fake_fill(team.engine, "NVDA", 50, "2026-11-09")
+    team.engine.apply_corporate_actions(date(2026, 11, 13))
+    st = team.engine.ledger.state()
+    assert st.holdings["NVDA"].quantity == 50
+    ev = next(e["payload"] for e in team.engine.ledger.events()
+              if e["type"] == "CORPORATE_ACTION" and e["payload"]["type"] == "split")
+    assert ev["eligible_shares"] == 0 and ev["added_shares"] == 0
+    team.engine.apply_corporate_actions(date(2026, 11, 13))  # idempotent
+    assert team.engine.ledger.state().holdings["NVDA"].quantity == 50
+    team.engine.reconcile()
+
+
+def test_split_applies_only_to_shares_held_before_the_ex_date(team):
+    _fake_fill(team.engine, "NVDA", 10, "2026-06-01")   # before the ex-date: becomes 40
+    _fake_fill(team.engine, "NVDA", 7, "2026-06-10")    # on the ex-date: already post-split
+    team.engine.apply_corporate_actions(date(2026, 11, 13))
+    assert team.engine.ledger.state().holdings["NVDA"].quantity == 47
+    team.engine.reconcile()
+
+
+def test_missing_execution_record_is_rebuilt_on_open(team, cfg, md):
+    p = _buy_aapl(team)
+    rec, _ = team.execute(p.proposal_id, now=NOW)
+    path = team.engine.records.root / "executions" / f"{rec.execution_id}.json"
+    path.unlink()  # a stop after the FILL append, before the record write
+    reopened = PaperEngine(team.engine.home, cfg, md).open()
+    assert path.exists()
+    assert any("rebuilt missing execution record" in n for n in reopened.recovery_notes)
+    rebuilt = json.loads(path.read_text())
+    assert rebuilt["fill_price"] == pytest.approx(rec.fill_price) and rebuilt["quantity"] == rec.quantity
+
+
+def test_backtest_respects_gross_exposure_cap(md):
+    from merlin_quant import backtest as bt
+    cfg = cfg_with(max_gross_exposure=0.10)
+    uncapped = bt.run_backtest(md, cfg_with(), date(2026, 5, 1), date(2026, 11, 13), every=5)
+    res = bt.run_backtest(md, cfg, date(2026, 5, 1), date(2026, 11, 13), every=5)
+    navs = dict(res["nav"])
+    by_date = {}
+    for d in res["decisions"]:
+        by_date.setdefault(d["date"], 0.0)
+        by_date[d["date"]] += d["target_qty"] * md.raw_close(d["instrument"], date.fromisoformat(d["date"]))[0]
+    for d, exposure in by_date.items():
+        assert exposure <= 0.10 * navs[d] * 1.03, d  # drift on held names only; new buys never pass the cap
+    assert sum(t["quantity"] for t in res["trades"]) < sum(t["quantity"] for t in uncapped["trades"])
+
+
+def test_backtest_order_filled_on_split_ex_date_is_rebased(md, cfg, monkeypatch):
+    from merlin_quant import backtest as bt
+    monkeypatch.setattr(bt, "technical_stance", lambda ind: (Stance.BULLISH, []))
+    res = bt.run_backtest(md, cfg, date(2026, 6, 9), date(2026, 6, 12), every=1)
+    dec = next(d for d in res["decisions"] if d["date"] == "2026-06-09" and d["instrument"] == "NVDA")
+    fill = next(t for t in res["trades"] if t["session"] == "2026-06-10" and t["instrument"] == "NVDA")
+    assert fill["quantity"] == dec["target_qty"] * 4  # sized pre-split, filled post-split
+    nav = dict(res["nav"])["2026-06-09"]
+    assert fill["quantity"] * fill["fill_price"] == pytest.approx(0.08 * nav, rel=0.05)
+    nxt = next(d for d in res["decisions"] if d["date"] == "2026-06-10" and d["instrument"] == "NVDA")
+    later = [t for t in res["trades"] if t["instrument"] == "NVDA" and t["session"] == "2026-06-11"]
+    held = fill["quantity"]  # had the split hit the fill again, the book would hold 16x and dump ~3/4 here
+    assert all(t["quantity"] <= 0.1 * held for t in later) and abs(nxt["target_qty"] - held) <= 0.1 * held
