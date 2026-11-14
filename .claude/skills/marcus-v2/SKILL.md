@@ -38,6 +38,8 @@ $M telemetry
 $M daily_run                                       # Price Monitor scan -> Workflow A -> SGD snapshot -> report
 $M weekly_review                                   # portfolio analysis + telemetry
 $M watch_list                                      # Price Monitor rules
+$M fsi_prepare --payload '{"instrument_id": "US:AAPL"}'   # Finance Bridge data pack (see marcus-fsi skill)
+$M fsi_ingest  --payload '{"sidecar": "...", "note": "..."}'
 ```
 
 Owner-only (run ONLY after the owner types an explicit approval in the chat, quoting the item):
