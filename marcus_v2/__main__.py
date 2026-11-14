@@ -59,6 +59,7 @@ def main(argv=None) -> int:
 
 WRITE_COMMANDS = {"mandate_propose", "mandate_approve", "import_legacy", "apply_topup", "approve", "daily_run",
                   "weekly_review", "watch_add", "watch_import", "watch_deactivate", "new_opportunity",
+                  "fsi_prepare", "fsi_ingest",
                   "daily_monitoring", "portfolio_review", "state_push"}
 
 
@@ -138,6 +139,12 @@ def _run(a, p, rt) -> int:
     if a.command == "weekly_review":
         r = runner.weekly_review(team, date.fromisoformat(p["as_of"]) if p.get("as_of") else None)
         _out({"report_path": r["report_path"], "markdown": runner.render_markdown(r)}); return 0
+    if a.command in ("fsi_prepare", "fsi_ingest"):
+        from .agents.finance_bridge.agent import FinanceBridge
+        fb = FinanceBridge(rt, team.mi, team.dg, rc=team.rc, sec_offline_dir=p.get("sec_offline_dir")).register()
+        if a.command == "fsi_prepare":
+            _out(fb.prepare_data_pack(p["instrument_id"])); return 0
+        _out(fb.ingest_output(p["sidecar"], p.get("note"))); return 0
     if a.command == "state_push":
         _out({"note": "state is pushed after this command when MARCUS_V2_STATE_REPO is set"}); return 0
     _out({"error": f"unknown command {a.command}"})
