@@ -192,9 +192,9 @@ _PATHS = {
 }
 # quarterly revenue (billions) at the first quarter, quarterly growth, margins, shares (bn), cash, debt
 _FUND = {
-    "AAPL": dict(rev0=95.0, g=0.015, gm=0.46, om=0.31, nm=0.25, fcf=0.27, sh=15.0, cash=65.0, debt=95.0, seed=21),
-    "MSFT": dict(rev0=68.0, g=0.030, gm=0.69, om=0.45, nm=0.36, fcf=0.30, sh=7.45, cash=75.0, debt=45.0, seed=22),
-    "NVDA": dict(rev0=39.0, g=0.090, gm=0.73, om=0.60, nm=0.53, fcf=0.48, sh=24.5, cash=55.0, debt=8.5, seed=23),
+    "AAPL": dict(rev0=210.0, g=0.015, gm=0.46, om=0.31, nm=0.25, fcf=0.27, sh=15.0, cash=65.0, debt=95.0, seed=21),
+    "MSFT": dict(rev0=102.0, g=0.030, gm=0.69, om=0.45, nm=0.36, fcf=0.30, sh=7.45, cash=75.0, debt=45.0, seed=22),
+    "NVDA": dict(rev0=68.0, g=0.090, gm=0.73, om=0.60, nm=0.53, fcf=0.48, sh=24.5, cash=55.0, debt=8.5, seed=23),
 }
 _PROFILES = {
     "AAPL": dict(name="Apple Inc. (synthetic fixture)", sector="Technology Hardware", exchange="NASDAQ"),
