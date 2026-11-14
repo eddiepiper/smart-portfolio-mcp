@@ -170,14 +170,20 @@ class Team:
                      and e["payload"]["fill_session"] == fill_session.isoformat())
         if pid in st.filled:  # rerun of an executed proposal: return the one recorded execution
             r = RiskGateResult.model_validate(self._risk_for(pid))
-            return self.engine.execute(p, r), r
+            rec = self.engine.execute(p, r)
+            if p.status != "EXECUTED":
+                self._set_status(p, "EXECUTED")
+            return rec, r
         r = risk_gate.evaluate(p, st, self.cfg, self.md, last_completed_session=last_completed_session(now),
                                executed_proposals=st.filled, orders_this_session=orders, now=now)
         self.engine.records.put("risk", r.result_id, r)
         self.engine.ledger.append("RISK_RESULT", f"risk:{r.result_id}", {"proposal_id": pid, "outcome": r.outcome,
                                   "reasons": r.reasons, "config_version": r.config_version})
         if r.outcome != "PASS":
-            self._set_status(p, "REJECTED" if r.outcome == "REJECT" else "BLOCKED")
+            # REJECT is final for this proposal. BLOCKED is a system state (halt, stale data, calendar): the
+            # approval stands and the gate re-evaluates on the next attempt; stale data cannot pass later anyway.
+            if r.outcome == "REJECT":
+                self._set_status(p, "REJECTED")
             return None, r
         rec = self.engine.execute(p, r, crash_after_intent=crash_after_intent)
         self._set_status(p, "EXECUTED")

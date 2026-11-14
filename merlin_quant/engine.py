@@ -133,6 +133,8 @@ class PaperEngine:
             if book_shares == ledger_shares + delta:
                 fill = self._price(intent)
                 self.ledger.append("FILL", f"fill:{exe_id}", {**fill, "recovered": True})
+                ref = self.records.get("proposals", intent["proposal_id"])["reference_price"]
+                self._write_record(intent, fill, ref)
                 self.recovery_notes.append(f"recovered interrupted fill {exe_id} from the broker book")
             elif book_shares == ledger_shares:
                 self.ledger.append("ORDER_ABANDONED", f"abandon:{exe_id}",
@@ -303,17 +305,20 @@ class PaperEngine:
         self.ledger.append("FILL", f"fill:{exe_id}", priced)
         self.reconcile()
 
-        gross = proposal.quantity * fill.price
+        return self._write_record(intent, priced, proposal.reference_price)
+
+    def _write_record(self, intent: dict, priced: dict, reference_price: float) -> ExecutionRecord:
+        q, px, fee, side = intent["quantity"], priced["fill_price"], priced["commission"], intent["side"]
+        gross = q * px
         rec = ExecutionRecord(
-            execution_id=exe_id, proposal_id=proposal.proposal_id, risk_result_id=risk.result_id,
-            instrument=proposal.instrument, side=side, quantity=proposal.quantity,
-            reference_price=proposal.reference_price, fill_session=session,
-            fill_basis=f"{session} session open ({bar['open']}) + {self.costs.spread_bps} bps half-spread + "
-                       f"square-root impact; commission max({self.costs.commission_per_share}/sh, "
+            execution_id=intent["execution_id"], proposal_id=intent["proposal_id"],
+            risk_result_id=intent["risk_result_id"], instrument=intent["instrument"], side=side, quantity=q,
+            reference_price=reference_price, fill_session=date.fromisoformat(intent["fill_session"]),
+            fill_basis=f"{intent['fill_session']} session open ({intent['open_price']}) + {self.costs.spread_bps} bps "
+                       f"half-spread + square-root impact; commission max({self.costs.commission_per_share}/sh, "
                        f"{self.costs.min_commission})",
-            fill_price=round(fill.price, 6), commission=round(priced["commission"], 4),
-            slippage_cost=round(abs(fill.price - bar["open"]) * proposal.quantity, 4),
-            gross_value=round(gross, 2),
-            net_cash_change=round(-(gross + priced["commission"]) if side == "buy" else gross - priced["commission"], 2))
-        self.records.put("executions", exe_id, rec)
+            fill_price=round(px, 6), commission=round(fee, 4),
+            slippage_cost=round(abs(px - intent["open_price"]) * q, 4), gross_value=round(gross, 2),
+            net_cash_change=round(-(gross + fee) if side == "buy" else gross - fee, 2))
+        self.records.put("executions", intent["execution_id"], rec)
         return rec
