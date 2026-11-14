@@ -6,6 +6,11 @@ For portfolio reviews, end-to-end opportunity assessments, price-alert processin
 execution or ledger/mandate questions, use the `marcus-v2` skill. Claude is Marcus's runtime
 (not Grok). Owner-only commands need the owner's explicit approval in the chat first.
 
+## Merlin + Quant (standalone paper-trading team)
+
+For Merlin/Quant research, challenges, paper proposals, approvals, the Merlin/Quant paper ledger, backtests or
+performance, use the `merlin-quant` skill. It is independent of Marcus: never mix their ledgers or mandates.
+
 ## Stock questions
 
 Whenever the user asks about a stock, ETF or ticker (should I buy X, analyze X, levels

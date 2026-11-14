@@ -27,6 +27,8 @@ from merlin_quant.runtime import Runtime, extract_json
 AGENT_DIR = Path(__file__).parent / "agents"
 FSI_COMMIT = "3e32c2287dcb637c184c01cc0ad82d6af7e9bb0f"
 FSI_PLUGINS = ["vertical-plugins/financial-analysis", "vertical-plugins/equity-research"]
+FSI_SKILLS = ["equity-research:earnings-analysis", "financial-analysis:dcf-model", "financial-analysis:comps-analysis",
+              "equity-research:thesis-tracker"]
 
 
 # ------------------------------------------------------------------ calc engine
@@ -154,6 +156,9 @@ def run_merlin(view: PointInTimeView, symbol: str, universe: list[str], research
     payload = json.dumps(inputs, indent=1, default=str)
     prompt = ("Research assignment for Merlin.\n\nVERIFIED INPUTS (the only numbers you may use):\n"
               f"```json\n{payload}\n```\n\nReturn the JSON object described in your instructions.")
+    if getattr(rt, "plugin_dirs", None):
+        prompt = ("FIRST, load each of these Anthropic financial-services skills with the Skill tool, one call each, "
+                  "and follow their method: " + ", ".join(FSI_SKILLS) + ". Then answer.\n\n" + prompt)
     before = rt.meter.calls
     r = rt.complete(merlin_system_prompt(), prompt)
     out = extract_json(r.text)
