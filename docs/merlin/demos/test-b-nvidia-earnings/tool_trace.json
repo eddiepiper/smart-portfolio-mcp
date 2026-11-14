@@ -1,0 +1,28 @@
+{
+  "tool_counts": {
+    "Skill": 1,
+    "Bash": 13,
+    "Grep": 3,
+    "Write": 1,
+    "Edit": 2,
+    "StructuredOutput": 1
+  },
+  "skills": [
+    "earnings-analysis"
+  ],
+  "agents": [],
+  "fetched_urls": [],
+  "plugins": [
+    "financial-analysis",
+    "equity-research",
+    "market-researcher",
+    "earnings-reviewer",
+    "model-builder",
+    "product-management",
+    "cowork-plugin-management",
+    "cc-plugin-agents-md",
+    "cc-plugin-telemetry",
+    "cc-plugin-privacy",
+    "cc-plugin-plugin-authoring"
+  ]
+}

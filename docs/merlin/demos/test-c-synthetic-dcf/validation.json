@@ -1,0 +1,47 @@
+{
+  "status": "PASS",
+  "report_id": "mrep_synthco_dcf_20261114",
+  "quality_status": "PROVISIONAL",
+  "suggested_quality_status": "PROVISIONAL",
+  "figures": 39,
+  "evidence": 2,
+  "issues": [],
+  "observed": {
+    "tool_counts": {
+      "Bash": 6,
+      "Grep": 3,
+      "Read": 4,
+      "Glob": 1,
+      "Skill": 1,
+      "Write": 1,
+      "Edit": 1,
+      "StructuredOutput": 1
+    },
+    "skills": [
+      "dcf-model"
+    ],
+    "agents": [],
+    "fetched_urls": [],
+    "plugins": [
+      "financial-analysis",
+      "equity-research",
+      "market-researcher",
+      "earnings-reviewer",
+      "model-builder",
+      "product-management",
+      "cowork-plugin-management",
+      "cc-plugin-agents-md",
+      "cc-plugin-telemetry",
+      "cc-plugin-privacy",
+      "cc-plugin-plugin-authoring"
+    ],
+    "bash_commands": [
+      "python -m merlin calc --help",
+      "python -m merlin calc wacc --inputs '{\"risk_free\":0.042,\"beta\":1.1,\"equity_risk_premium\":0.05,\"pre_tax_cost_of_debt\":0.055,\"tax_rate\":0.21,\"equity_value\":30000,\"debt_value\":3000}'",
+      "python -m merlin calc dcf --inputs '{\"projection\":{\"base_revenue\":10000,\"growth\":[0.12,0.10,0.08,0.06,0.05],\"ebit_margin\":0.18,\"tax_rate\":0.21,\"da_pct\":0.04,\"capex_pct\":0.05,\"nwc_pct_of_change\":0.10},\"valuation\":{\"discount_rate\":0.092132,\"terminal_growth\":0.025,\"net_debt\":1500,\"shares\":500,\"mid_year",
+      "python -m merlin validate '{\"contract\":\"merlin-research/v1\",\"spec_version\":\"1.0.0\",\"report_id\":\"mrep_synthco_dcf_20261114\",\"created_at\":\"2026-11-14T12:00:00Z\",\"environment\":\"claude-cli\",\"request\":{\"request_id\":\"mreq_12e8a4abea0d\",\"task_type\":\"financial_model\",\"subject\":\"Synthetic Co (SYNTHCO)\",\"ques",
+      "python -m merlin validate /tmp/claude-0/-home-claude-smart-portfolio-mcp/bfe9d515-0a85-40be-9d74-870e46a3dfbf/scratchpad/synthco_report.json",
+      "python -m merlin validate /tmp/claude-0/-home-claude-smart-portfolio-mcp/bfe9d515-0a85-40be-9d74-870e46a3dfbf/scratchpad/synthco_report.json"
+    ]
+  }
+}

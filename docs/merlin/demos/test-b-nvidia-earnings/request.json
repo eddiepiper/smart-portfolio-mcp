@@ -1,0 +1,9 @@
+{
+  "task_type": "earnings_review",
+  "subject": "NVDA",
+  "question": "Merlin, analyse NVIDIA's latest reported quarterly earnings: results versus the prior quarter and the year-ago quarter, segment drivers, margins, cash flow and capital returns, guidance, one-offs, and what changed for the investment thesis. Use the Anthropic earnings-analysis method and the official NVIDIA press release / CFO commentary. Consensus is not available unless a licensed connector supplies it.",
+  "as_of": "2026-11-14",
+  "requested_by": "test",
+  "instrument_id": "US:NVDA",
+  "request_id": "mreq_2ead3f253a23"
+}

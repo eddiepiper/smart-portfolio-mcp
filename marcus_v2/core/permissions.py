@@ -28,6 +28,7 @@ POLICY: dict[str, set[str]] = {
     "portfolio_analyst": {"read_market_data", "read_ledger", "read_mandate"},
     "quant": {"read_market_data", "read_research"},
     "price_monitor": {"read_market_data", "write_market_cache"},
+    "finance_bridge": {"read_market_data", "read_research"},
     "marcus": {"read_market_data", "read_research", "read_ledger", "read_mandate",
                "write_recommendation", "request_quant_review", "propose_mandate", "call_llm"},
 }

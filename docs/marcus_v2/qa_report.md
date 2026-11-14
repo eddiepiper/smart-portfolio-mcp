@@ -93,3 +93,4 @@ is unofficial and delayed.
 | 7 Portfolio Analyst + capital | COMPLETE (S$500 → S$20,000 implemented after owner decision) | `2cebf2f` + follow-up |
 | 8 Marcus + integrations | COMPLETE; Claude runtime via skill; contract-only adapters for Quant / Price Monitor | `ece8f12` + follow-up |
 | 9 QA & docs | COMPLETE (self-QA); independent QA by Dex pending | this commit |
+| Finance Bridge (Anthropic FSI agents) | COMPLETE; 9 tests (pack, VERIFIED/PARTIAL/REJECTED, injection, contract, permissions) | see `fsi_bridge.md` |

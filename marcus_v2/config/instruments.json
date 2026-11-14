@@ -66,6 +66,22 @@
       "currency": "SGD",
       "price_unit": "per_usd",
       "timezone": "Europe/London"
+    },
+    {
+      "instrument_id": "US:AAPL",
+      "symbol": "AAPL",
+      "market": "NASDAQ",
+      "asset_class": "equity",
+      "currency": "USD",
+      "price_unit": "per_share"
+    },
+    {
+      "instrument_id": "US:KO",
+      "symbol": "KO",
+      "market": "NYSE",
+      "asset_class": "equity",
+      "currency": "USD",
+      "price_unit": "per_share"
     }
   ],
   "thresholds": {

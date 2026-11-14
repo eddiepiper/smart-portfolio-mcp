@@ -6,10 +6,28 @@ For portfolio reviews, end-to-end opportunity assessments, price-alert processin
 execution or ledger/mandate questions, use the `marcus-v2` skill. Claude is Marcus's runtime
 (not Grok). Owner-only commands need the owner's explicit approval in the chat first.
 
+## Anthropic finance agents (Finance Bridge)
+
+For earnings reviews, post-earnings notes or market/sector research notes, use the `marcus-fsi`
+skill. Marcus builds a free cited data pack, then the vendored `earnings-reviewer` or
+`market-researcher` agent writes the note, and Marcus verifies every figure against SEC filings.
+Research only: no rating, no action.
+
+## Merlin (financial research and modelling)
+
+When the user addresses Merlin ("Merlin, ...") or asks for company or sector research, an
+earnings review, a fundamentals comparison, a DCF/comps/ratio analysis, a valuation check or a
+macro investigation, use the `merlin` skill (spec: `merlin/spec/MERLIN.md`). Every number comes
+from a cited source or `python -m merlin calc`; every report passes `python -m merlin validate`.
+Research only: Merlin never trades, rates or sizes positions; Marcus decides and Quant challenges.
+"Should I buy X" stays with `stock-analysis` (TradingAgents is the primary engine). Direct research
+requests go to Merlin; `marcus-fsi` stays for Marcus's own pipeline (SEC data pack + verification).
+
 ## Merlin + Quant (standalone paper-trading team)
 
-For Merlin/Quant research, challenges, paper proposals, approvals, the Merlin/Quant paper ledger, backtests or
-performance, use the `merlin-quant` skill. It is independent of Marcus: never mix their ledgers or mandates.
+For the standalone Merlin + Quant team (`merlin_quant/`: joint Merlin/Quant research with Quant's challenge, paper
+trade proposals, approvals, its paper ledger, backtests or performance), use the `merlin-quant` skill. It is
+independent of Marcus: never mix their ledgers or mandates. A plain research request to Merlin stays with `merlin`.
 
 ## Stock questions
 
