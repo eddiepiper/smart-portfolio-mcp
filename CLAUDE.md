@@ -23,6 +23,12 @@ Research only: Merlin never trades, rates or sizes positions; Marcus decides and
 "Should I buy X" stays with `stock-analysis` (TradingAgents is the primary engine). Direct research
 requests go to Merlin; `marcus-fsi` stays for Marcus's own pipeline (SEC data pack + verification).
 
+## Merlin + Quant (standalone paper-trading team)
+
+For the standalone Merlin + Quant team (`merlin_quant/`: joint Merlin/Quant research with Quant's challenge, paper
+trade proposals, approvals, its paper ledger, backtests or performance), use the `merlin-quant` skill. It is
+independent of Marcus: never mix their ledgers or mandates. A plain research request to Merlin stays with `merlin`.
+
 ## Stock questions
 
 Whenever the user asks about a stock, ETF or ticker (should I buy X, analyze X, levels

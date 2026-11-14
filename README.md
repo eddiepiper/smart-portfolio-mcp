@@ -158,3 +158,12 @@ pip install -r requirements-marcus-v2.txt
 pytest -c pytest-marcus-v2.ini --rootdir .
 python -m marcus_v2 manifest
 ```
+
+---
+
+## Merlin + Quant (standalone paper-trading research team)
+
+A separate, paper-only prototype in `merlin_quant/`: two research leads (Merlin on Anthropic's financial-services
+skills, Quant on TauricResearch/TradingAgents with an explicit independent challenge), one deterministic risk gate
+and one ai-hedge-fund paper broker behind a hash-chained ledger. Independent of Marcus. See
+[docs/merlin_quant/README.md](docs/merlin_quant/README.md) and [ARCHITECTURE.md](docs/merlin_quant/ARCHITECTURE.md).
