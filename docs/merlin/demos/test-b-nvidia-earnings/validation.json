@@ -1,0 +1,52 @@
+{
+  "status": "PASS",
+  "report_id": "mrep_nvda_q2fy27_20261114",
+  "quality_status": "PROVISIONAL",
+  "suggested_quality_status": "PROVISIONAL",
+  "figures": 57,
+  "evidence": 7,
+  "issues": [],
+  "observed": {
+    "tool_counts": {
+      "Skill": 1,
+      "Bash": 13,
+      "Grep": 3,
+      "Write": 1,
+      "Edit": 2,
+      "StructuredOutput": 1
+    },
+    "skills": [
+      "earnings-analysis"
+    ],
+    "agents": [],
+    "fetched_urls": [],
+    "plugins": [
+      "financial-analysis",
+      "equity-research",
+      "market-researcher",
+      "earnings-reviewer",
+      "model-builder",
+      "product-management",
+      "cowork-plugin-management",
+      "cc-plugin-agents-md",
+      "cc-plugin-telemetry",
+      "cc-plugin-privacy",
+      "cc-plugin-plugin-authoring"
+    ],
+    "bash_commands": [
+      "python -m merlin calc --help",
+      "python -m merlin calc compare --inputs '{\"current\":{\"revenue\":96221,\"gaap_opex\":8408,\"nongaap_opex\":8232,\"gaap_op_inc\":63734,\"nongaap_op_inc\":63956,\"gaap_ni\":59688,\"nongaap_ni\":53954,\"gaap_eps\":2.46,\"nongaap_eps\":2.22,\"cfo\":24077,\"fcf\":21341},\"prior\":{\"revenue\":81615,\"gaap_opex\":7621,\"nongaap_opex\":",
+      "python -m merlin calc compare --inputs '{\"current\":{\"revenue\":96221,\"gaap_opex\":8408,\"nongaap_opex\":8232,\"gaap_op_inc\":63734,\"nongaap_op_inc\":63956,\"gaap_ni\":59688,\"nongaap_ni\":53954,\"gaap_eps\":2.46,\"nongaap_eps\":2.22,\"cfo\":24077,\"fcf\":21341,\"buyback\":19732,\"dividends\":6047},\"prior\":{\"revenue\":46743",
+      "python -m merlin calc tieout --inputs '{\"revenue\":96221,\"opex\":8408,\"operating_income\":63734,\"reported_gross_margin\":0.750}'",
+      "python -m merlin calc tieout --inputs '{\"revenue\":81615,\"opex\":7621,\"operating_income\":53536,\"reported_gross_margin\":0.749}'",
+      "python -m merlin calc tieout --inputs '{\"revenue\":46743,\"opex\":5413,\"operating_income\":28440,\"reported_gross_margin\":0.724}'",
+      "python -m merlin calc tieout --inputs '{\"revenue\":96221,\"opex\":8232,\"operating_income\":63956,\"reported_gross_margin\":0.750}'",
+      "python -m merlin calc ratios --inputs '{\"revenue\":96221,\"gross_profit\":72142,\"operating_income\":63734,\"net_income\":59688,\"cfo\":24077,\"capex\":2736}'",
+      "python -m merlin calc ratios --inputs '{\"revenue\":81615,\"gross_profit\":61157,\"operating_income\":53536,\"net_income\":58321,\"cfo\":50344,\"capex\":1790}'",
+      "python -m merlin calc ratios --inputs '{\"revenue\":46743,\"gross_profit\":33853,\"operating_income\":28440,\"net_income\":26422,\"cfo\":15365,\"capex\":1915}'",
+      "python -m merlin calc compare --inputs '{\"current\":{\"rev_guide_mid\":108000,\"rev_guide_low\":105840,\"rev_guide_high\":110160,\"gaap_opex_guide\":9200,\"nongaap_opex_guide\":9000,\"cap_returns\":26000,\"dc_plus_edge\":96200},\"prior\":{\"rev_guide_mid\":96221,\"rev_guide_low\":96221,\"rev_guide_high\":96221,\"gaap_opex_",
+      "python -m merlin validate /tmp/claude-0/-home-claude-smart-portfolio-mcp/bac35855-e1a1-43e1-a46d-c8e732dc8b1c/scratchpad/nvda_q2fy27.json",
+      "python -m merlin validate /tmp/claude-0/-home-claude-smart-portfolio-mcp/bac35855-e1a1-43e1-a46d-c8e732dc8b1c/scratchpad/nvda_q2fy27.json"
+    ]
+  }
+}

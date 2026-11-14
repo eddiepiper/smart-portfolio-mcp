@@ -76,3 +76,6 @@ trader/
 # Marcus V2 runtime state (ledger, evidence, audit, caches)
 var/
 .venv-marcus-v2/
+
+# Merlin working runs (demos worth keeping are copied to docs/merlin/demos)
+research/merlin/
