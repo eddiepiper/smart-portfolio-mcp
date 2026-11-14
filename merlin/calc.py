@@ -107,6 +107,29 @@ def tie_out(revenue: float, opex: float, operating_income: float, reported_gross
             "difference": _r(implied_gm - reported_gross_margin), "ok": abs(implied_gm - reported_gross_margin) <= tol}
 
 
+def arith(op: str, values: Sequence[float]) -> float:
+    """Plain arithmetic with a named operation, so simple sums and differences are not forced
+    through unrelated functions (found in testing: a model used `tieout` to add two numbers).
+    sum: a+b+...; diff: a-b-...; product: a*b*...; ratio: a/b; share: a/b (a part of b)."""
+    if not values:
+        raise CalcError("no values")
+    v = [float(x) for x in values]
+    if op == "sum":
+        return _r(sum(v))
+    if op == "diff":
+        return _r(v[0] - sum(v[1:]))
+    if op == "product":
+        out = 1.0
+        for x in v:
+            out *= x
+        return _r(out)
+    if op in ("ratio", "share"):
+        if len(v) != 2 or v[1] == 0:
+            raise CalcError(f"{op} needs exactly two values and a non-zero divisor")
+        return _r(v[0] / v[1])
+    raise CalcError(f"unknown op {op}; use sum, diff, product, ratio or share")
+
+
 # ---------------------------------------------------------------- cost of capital
 def capm(risk_free: float, beta: float, equity_risk_premium: float) -> float:
     return _r(risk_free + beta * equity_risk_premium)

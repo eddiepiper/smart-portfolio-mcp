@@ -1,0 +1,9 @@
+{
+  "task_type": "market_research",
+  "subject": "Semiconductor industry",
+  "question": "Produce a research report on the semiconductor industry: market size and growth, key competitors and their positioning (compute/AI accelerators, foundry, memory, equipment), industry drivers, and material risks (cyclicality, export controls, concentration, valuation). Use primary sources (SIA/WSTS, company IR releases, TSMC, BIS) and the Anthropic sector-overview / competitive-analysis method.",
+  "as_of": "2026-11-14",
+  "requested_by": "test",
+  "instrument_id": null,
+  "request_id": "mreq_887a093bfa50"
+}

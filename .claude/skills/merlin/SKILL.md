@@ -63,6 +63,7 @@ $M calc ratios  --inputs items.json
 $M calc wacc    --inputs '{"risk_free":0.042,"beta":1.2,"equity_risk_premium":0.05,"pre_tax_cost_of_debt":0.05,"tax_rate":0.21,"equity_value":900,"debt_value":100}'
 $M calc dcf     --inputs dcf.json --sensitivity '{"row_key":"discount_rate","rows":[0.08,0.09,0.10,0.11,0.12],"col_key":"terminal_growth","cols":[0.01,0.015,0.02,0.025,0.03]}' --scenarios '{"bull":{...},"bear":{...}}'
 $M calc comps   --inputs '{"AAA": 21.4, "BBB": 18.0}'
+$M calc arith   --inputs '{"op": "diff", "values": [1655, 702, 517.7]}'     # sum | diff | product | ratio | share
 $M calc reverse_dcf --inputs '{"inputs": {...dcf...}, "target_value_per_share": 150}'
 ```
 

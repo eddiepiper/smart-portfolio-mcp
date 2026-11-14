@@ -1,0 +1,1075 @@
+{
+  "contract": "merlin-research/v1",
+  "spec_version": "1.0.0",
+  "report_id": "mrep_nvda_q2fy27_20261114",
+  "created_at": "2026-11-14T12:45:00Z",
+  "environment": "claude-cli",
+  "request": {
+    "request_id": "mreq_2ead3f253a23",
+    "task_type": "earnings_review",
+    "subject": "NVDA",
+    "question": "Merlin, analyse NVIDIA's latest reported quarterly earnings: results versus the prior quarter and the year-ago quarter, segment drivers, margins, cash flow and capital returns, guidance, one-offs, and what changed for the investment thesis. Use the Anthropic earnings-analysis method and the official NVIDIA press release / CFO commentary. Consensus is not available unless a licensed connector supplies it.",
+    "as_of": "2026-11-14",
+    "requested_by": "test",
+    "instrument_id": "US:NVDA"
+  },
+  "boundaries": {
+    "paper_research_only": true,
+    "trade_instruction": false,
+    "binding_portfolio_decision": false
+  },
+  "capabilities_used": [
+    {
+      "name": "earnings-analysis",
+      "kind": "fsi_plugin_skill",
+      "genuine_execution": true,
+      "detail": "Skill loaded via the Skill tool; its beat/miss, segment, margin, guidance and thesis-impact structure was followed. Beat/miss vs consensus could not be done (no licensed connector). DOCX/chart deliverables not produced: the assignment requires JSON only."
+    },
+    {
+      "name": "merlin.calc compare / tieout / ratios",
+      "kind": "merlin_calc",
+      "genuine_execution": true,
+      "detail": "12 calculator calls: q/q and y/y compares, GAAP and non-GAAP gross-margin tie-outs for three quarters, margin and FCF ratios, guidance-vs-actual compares."
+    },
+    {
+      "name": "caller-supplied evidence pack (web fetch of NVIDIA press release and IR page by the Merlin Claude Cloud session)",
+      "kind": "web_fetch",
+      "genuine_execution": false,
+      "detail": "Retrieval was performed by the caller, not in this run; data used as supplied and labelled PROVISIONAL."
+    },
+    {
+      "name": "Merlin earnings analysis and synthesis",
+      "kind": "ordinary_analysis",
+      "genuine_execution": false,
+      "detail": "Interpretation, thesis assessment and risk framing written by Merlin."
+    }
+  ],
+  "executive_summary": "NVIDIA's latest reported quarter is Q2 FY27 (ended 2026-07-26, released 2026-08-26); Q3 FY27 has not yet been reported per the IR page. Revenue was $96.2bn, up 17.9% q/q and 105.9% y/y, driven by Data Center ($89.0bn, +18% q/q per the release) with the newly labelled Edge Computing segment at $7.2bn (+13% q/q, +27% y/y). GAAP gross margin held at 75.0% (74.9% in Q1, 72.4% a year ago) and the print ties out internally to within rounding; GAAP operating margin rose to 66.2% from 65.6% q/q and 60.8% y/y as opex grew 10.3% q/q against revenue growth of 17.9%. GAAP net income rose only 2.3% q/q because Q1 was inflated by large equity-securities gains, whereas non-GAAP EPS of $2.22 rose 18.7% q/q and 119.8% y/y. The weak spot is cash: operating cash flow (summary-level, PROVISIONAL) fell 52.2% q/q to $24.1bn and free cash flow fell 56.0% to $21.3bn, only 35.8% of GAAP net income, while about $26.0bn was returned to shareholders, about 21.8% more than FCF. Q3 guidance of $108.0bn +/-2% implies 12.2% q/q growth at the midpoint (decelerating from 17.9%), gross margin guided to 74.0% +/-50bp (down from 75.0%), and still no China Data Center compute assumed. Thesis read-through: demand and operating leverage remain intact; what changed is decelerating sequential growth, a modest margin step-down, a sharp cash-conversion drop that needs explaining, rising earnings exposure to mark-to-market equity holdings, and an unread CEO-transition announcement dated 2026-11-12. No consensus was available, so no beat/miss is asserted. Evidence is caller-supplied and not re-read from the original in this run, so quality is PROVISIONAL.",
+  "key_findings": [
+    {
+      "rank": 1,
+      "significance": "high",
+      "finding": "Growth remained very strong but is decelerating sequentially: revenue +17.9% q/q and +105.9% y/y in Q2 FY27, while the Q3 FY27 midpoint guide of $108.0bn implies +12.2% q/q (range bounds +/-2% around the midpoint). Data Center at $89.0bn (+18% q/q) is the overwhelming driver; compute/networking split not printed.",
+      "figure_ids": [
+        "F_REV_Q2FY27",
+        "F_REV_QQ",
+        "F_REV_YY",
+        "F_DC_REV",
+        "F_GUIDE_REV",
+        "F_GUIDE_QQ"
+      ],
+      "evidence_ids": [
+        "E1"
+      ]
+    },
+    {
+      "rank": 2,
+      "significance": "high",
+      "finding": "Cash conversion fell sharply: operating cash flow -52.2% q/q to $24.1bn and FCF -56.0% q/q to $21.3bn despite higher profits; FCF conversion of GAAP net income dropped to 35.8% from 83.3% in Q1 FY27 and 50.9% a year ago. Cash-flow lines are from a summary of a truncated page (PROVISIONAL), so the cause (working capital, inventory/supply prepayments or tax timing) is unexplained and the figures need confirming against the 10-Q.",
+      "figure_ids": [
+        "F_CFO_Q2FY27",
+        "F_CFO_QQ",
+        "F_FCF_Q2FY27",
+        "F_FCF_QQ",
+        "F_FCFCONV_Q2",
+        "F_FCFCONV_Q1",
+        "F_FCFCONV_Q2FY26"
+      ],
+      "evidence_ids": [
+        "E2"
+      ]
+    },
+    {
+      "rank": 3,
+      "significance": "high",
+      "finding": "Operating leverage and margins held at peak levels: GAAP gross margin 75.0% (ties out to an implied 74.98% from operating income plus opex), GAAP operating margin 66.2% vs 65.6% q/q and 60.8% y/y, with GAAP opex +10.3% q/q against revenue +17.9%. Q3 guide steps gross margin down to 74.0% +/-50bp and opex up 9.4% to about $9.2bn GAAP.",
+      "figure_ids": [
+        "F_GM_GAAP_Q2FY27",
+        "F_GM_IMPLIED_Q2FY27",
+        "F_OPM_Q2FY27",
+        "F_OPM_Q1FY27",
+        "F_OPM_Q2FY26",
+        "F_OPEX_QQ",
+        "F_GUIDE_GM",
+        "F_GUIDE_OPEX_QQ"
+      ],
+      "evidence_ids": [
+        "E1"
+      ]
+    },
+    {
+      "rank": 4,
+      "significance": "medium",
+      "finding": "GAAP earnings quality is distorted by mark-to-market equity holdings: GAAP net income exceeded non-GAAP net income in Q2 FY27 ($59.7bn vs $54.0bn) and Q1 GAAP net income ($58.3bn) exceeded GAAP operating income ($53.5bn), consistent with net equity-securities gains of $7.8bn (Q2) and $15.9bn (Q1) per the summary. Marketable equity securities grew to $42.8bn from $12.9bn at FY-end, so GAAP EPS (+2.9% q/q) understates operating momentum while non-GAAP EPS (+18.7% q/q) tracks it.",
+      "figure_ids": [
+        "F_NI_GAAP_Q2FY27",
+        "F_NI_NONGAAP_Q2FY27",
+        "F_NI_GAAP_QQ",
+        "F_EPS_GAAP_QQ",
+        "F_EPS_NONGAAP_QQ",
+        "F_EQSEC_GAIN_Q2",
+        "F_EQSEC_GAIN_Q1",
+        "F_MKT_EQ_SEC"
+      ],
+      "evidence_ids": [
+        "E1",
+        "E2"
+      ]
+    },
+    {
+      "rank": 5,
+      "significance": "medium",
+      "finding": "Capital returns stepped up and now exceed free cash flow: about $26.0bn returned in Q2 FY27 (repurchases $19.7bn, +103% y/y; dividends $6.0bn vs $0.2bn a year ago, with a $0.25 quarterly dividend), about 21.8% above FCF; about $99.0bn of authorization remains. Balance-sheet liquidity remains large (cash $22.4bn, marketable debt securities $34.1bn).",
+      "figure_ids": [
+        "F_CAPRET",
+        "F_CAPRET_VS_FCF",
+        "F_BUYBACK_YY",
+        "F_DIV_PAID",
+        "F_DPS",
+        "F_AUTH_REMAIN",
+        "F_CASH",
+        "F_MKT_DEBT_SEC"
+      ],
+      "evidence_ids": [
+        "E1",
+        "E2"
+      ]
+    },
+    {
+      "rank": 6,
+      "significance": "medium",
+      "finding": "One-offs and disclosure changes: an H20 charge/(release) footnote referencing $4.5bn is incompletely captured; China Data Center compute remains excluded from guidance (upside optionality, not in numbers); Edge Computing is a new segment label replacing separate Gaming/ProViz/Auto disclosure, which breaks historical segment comparability; and a CEO transition release dated 2026-11-12 exists but was not read.",
+      "figure_ids": [
+        "F_EDGE_REV"
+      ],
+      "evidence_ids": [
+        "E1",
+        "E2",
+        "E5"
+      ]
+    }
+  ],
+  "figures": [
+    {
+      "figure_id": "F_REV_Q2FY27",
+      "metric": "Revenue Q2 FY27",
+      "value": 96221,
+      "unit": "USD m",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_REV_Q1FY27",
+      "metric": "Revenue Q1 FY27",
+      "value": 81615,
+      "unit": "USD m",
+      "period": "Q1 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_REV_Q2FY26",
+      "metric": "Revenue Q2 FY26",
+      "value": 46743,
+      "unit": "USD m",
+      "period": "Q2 FY26",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_REV_QQ",
+      "metric": "Revenue growth q/q",
+      "value": 0.178962,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q1 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_REV_YY",
+      "metric": "Revenue growth y/y",
+      "value": 1.058511,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q2 FY26",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_DC_REV",
+      "metric": "Data Center revenue",
+      "value": 89,
+      "unit": "USD bn",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_DC_QQ",
+      "metric": "Data Center revenue growth q/q (as printed)",
+      "value": 0.18,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q1 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_EDGE_REV",
+      "metric": "Edge Computing revenue",
+      "value": 7.2,
+      "unit": "USD bn",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_EDGE_YY",
+      "metric": "Edge Computing revenue growth y/y (as printed)",
+      "value": 0.27,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q2 FY26",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_GM_GAAP_Q2FY27",
+      "metric": "GAAP gross margin (reported)",
+      "value": 0.75,
+      "unit": "ratio",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_GM_GAAP_Q1FY27",
+      "metric": "GAAP gross margin (reported)",
+      "value": 0.749,
+      "unit": "ratio",
+      "period": "Q1 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_GM_GAAP_Q2FY26",
+      "metric": "GAAP gross margin (reported)",
+      "value": 0.724,
+      "unit": "ratio",
+      "period": "Q2 FY26",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_GP_IMPLIED_Q2FY27",
+      "metric": "Implied GAAP gross profit (operating income + opex)",
+      "value": 72142,
+      "unit": "USD m",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.tieout"
+    },
+    {
+      "figure_id": "F_GM_IMPLIED_Q2FY27",
+      "metric": "Implied GAAP gross margin (tie-out, ok within tolerance)",
+      "value": 0.749753,
+      "unit": "ratio",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.tieout"
+    },
+    {
+      "figure_id": "F_GM_NG_IMPLIED_Q2FY27",
+      "metric": "Implied non-GAAP gross margin (tie-out, ok within tolerance)",
+      "value": 0.750231,
+      "unit": "ratio",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.tieout"
+    },
+    {
+      "figure_id": "F_OPM_Q2FY27",
+      "metric": "GAAP operating margin",
+      "value": 0.662371,
+      "unit": "ratio",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.ratios"
+    },
+    {
+      "figure_id": "F_OPM_Q1FY27",
+      "metric": "GAAP operating margin",
+      "value": 0.655958,
+      "unit": "ratio",
+      "period": "Q1 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.ratios"
+    },
+    {
+      "figure_id": "F_OPM_Q2FY26",
+      "metric": "GAAP operating margin",
+      "value": 0.608433,
+      "unit": "ratio",
+      "period": "Q2 FY26",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.ratios"
+    },
+    {
+      "figure_id": "F_OPEX_QQ",
+      "metric": "GAAP opex growth q/q",
+      "value": 0.103267,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q1 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_OPEX_YY",
+      "metric": "GAAP opex growth y/y",
+      "value": 0.553298,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q2 FY26",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_OPINC_YY",
+      "metric": "GAAP operating income growth y/y",
+      "value": 1.240999,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q2 FY26",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_NI_GAAP_Q2FY27",
+      "metric": "GAAP net income",
+      "value": 59688,
+      "unit": "USD m",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_NI_NONGAAP_Q2FY27",
+      "metric": "Non-GAAP net income",
+      "value": 53954,
+      "unit": "USD m",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_NI_GAAP_QQ",
+      "metric": "GAAP net income growth q/q",
+      "value": 0.023439,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q1 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_EPS_GAAP",
+      "metric": "GAAP diluted EPS",
+      "value": 2.46,
+      "unit": "USD/share",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_EPS_NONGAAP",
+      "metric": "Non-GAAP diluted EPS",
+      "value": 2.22,
+      "unit": "USD/share",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_EPS_GAAP_QQ",
+      "metric": "GAAP diluted EPS growth q/q",
+      "value": 0.029289,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q1 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_EPS_NONGAAP_QQ",
+      "metric": "Non-GAAP diluted EPS growth q/q",
+      "value": 0.187166,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q1 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_EPS_NONGAAP_YY",
+      "metric": "Non-GAAP diluted EPS growth y/y",
+      "value": 1.19802,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q2 FY26",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_EPS_GAAP_YY",
+      "metric": "GAAP diluted EPS growth y/y",
+      "value": 1.277778,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q2 FY26",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_CFO_Q2FY27",
+      "metric": "Operating cash flow",
+      "value": 24077,
+      "unit": "USD m",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E2"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_CFO_QQ",
+      "metric": "Operating cash flow growth q/q",
+      "value": -0.52175,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q1 FY27",
+      "evidence_ids": [
+        "E2"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_FCF_Q2FY27",
+      "metric": "Free cash flow",
+      "value": 21341,
+      "unit": "USD m",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E2"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_FCF_QQ",
+      "metric": "Free cash flow growth q/q",
+      "value": -0.560469,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q1 FY27",
+      "evidence_ids": [
+        "E2"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_FCF_YY",
+      "metric": "Free cash flow growth y/y",
+      "value": 0.586691,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q2 FY26",
+      "evidence_ids": [
+        "E2"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_FCF_MARGIN_Q2",
+      "metric": "FCF margin",
+      "value": 0.221792,
+      "unit": "ratio",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1",
+        "E2"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.ratios"
+    },
+    {
+      "figure_id": "F_FCFCONV_Q2",
+      "metric": "FCF / GAAP net income",
+      "value": 0.357543,
+      "unit": "ratio",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1",
+        "E2"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.ratios"
+    },
+    {
+      "figure_id": "F_FCFCONV_Q1",
+      "metric": "FCF / GAAP net income",
+      "value": 0.83253,
+      "unit": "ratio",
+      "period": "Q1 FY27",
+      "evidence_ids": [
+        "E1",
+        "E2"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.ratios"
+    },
+    {
+      "figure_id": "F_FCFCONV_Q2FY26",
+      "metric": "FCF / GAAP net income",
+      "value": 0.509045,
+      "unit": "ratio",
+      "period": "Q2 FY26",
+      "evidence_ids": [
+        "E1",
+        "E2"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.ratios"
+    },
+    {
+      "figure_id": "F_EQSEC_GAIN_Q2",
+      "metric": "Gains from equity securities, net (sign unclear)",
+      "value": 7771,
+      "unit": "USD m",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E2"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_EQSEC_GAIN_Q1",
+      "metric": "Gains from equity securities, net (sign unclear)",
+      "value": 15936,
+      "unit": "USD m",
+      "period": "Q1 FY27",
+      "evidence_ids": [
+        "E2"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_MKT_EQ_SEC",
+      "metric": "Marketable equity securities",
+      "value": 42783,
+      "unit": "USD m",
+      "period": "2026-07-26",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_MKT_EQ_SEC_FYE",
+      "metric": "Marketable equity securities",
+      "value": 12886,
+      "unit": "USD m",
+      "period": "2026-01-25",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_CASH",
+      "metric": "Cash and cash equivalents",
+      "value": 22443,
+      "unit": "USD m",
+      "period": "2026-07-26",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_MKT_DEBT_SEC",
+      "metric": "Marketable debt securities",
+      "value": 34143,
+      "unit": "USD m",
+      "period": "2026-07-26",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_CAPRET",
+      "metric": "Returned to shareholders (repurchases + dividends, approx.)",
+      "value": 26,
+      "unit": "USD bn",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_CAPRET_VS_FCF",
+      "metric": "Capital returns in excess of FCF (returns / FCF - 1)",
+      "value": 0.218312,
+      "unit": "ratio",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E1",
+        "E2"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_BUYBACK",
+      "metric": "Share repurchases",
+      "value": 19732,
+      "unit": "USD m",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E2"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_BUYBACK_YY",
+      "metric": "Share repurchases growth y/y",
+      "value": 1.029832,
+      "unit": "ratio",
+      "period": "Q2 FY27 vs Q2 FY26",
+      "evidence_ids": [
+        "E2"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_DIV_PAID",
+      "metric": "Dividends paid",
+      "value": 6047,
+      "unit": "USD m",
+      "period": "Q2 FY27",
+      "evidence_ids": [
+        "E2"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_DPS",
+      "metric": "Quarterly dividend per share (payable 2026-10-01)",
+      "value": 0.25,
+      "unit": "USD/share",
+      "period": "Q3 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_AUTH_REMAIN",
+      "metric": "Repurchase authorization remaining (approx.)",
+      "value": 99,
+      "unit": "USD bn",
+      "period": "2026-07-26",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_GUIDE_REV",
+      "metric": "Q3 FY27 revenue outlook midpoint (+/-2%)",
+      "value": 108,
+      "unit": "USD bn",
+      "period": "Q3 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_GUIDE_QQ",
+      "metric": "Implied q/q revenue growth at guidance midpoint",
+      "value": 0.122416,
+      "unit": "ratio",
+      "period": "Q3 FY27 guide vs Q2 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    },
+    {
+      "figure_id": "F_GUIDE_GM",
+      "metric": "Q3 FY27 GAAP and non-GAAP gross margin outlook (+/-50bp)",
+      "value": 0.74,
+      "unit": "ratio",
+      "period": "Q3 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_GUIDE_OPEX",
+      "metric": "Q3 FY27 GAAP opex outlook (approx.)",
+      "value": 9.2,
+      "unit": "USD bn",
+      "period": "Q3 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL"
+    },
+    {
+      "figure_id": "F_GUIDE_OPEX_QQ",
+      "metric": "Implied GAAP opex growth q/q at guide",
+      "value": 0.094196,
+      "unit": "ratio",
+      "period": "Q3 FY27 guide vs Q2 FY27",
+      "evidence_ids": [
+        "E1"
+      ],
+      "status": "PROVISIONAL",
+      "derived_by": "merlin.calc.compare"
+    }
+  ],
+  "model": {
+    "type": "ratios",
+    "inputs": {
+      "Q2FY27": {
+        "revenue": 96221,
+        "gross_profit_implied": 72142,
+        "operating_income": 63734,
+        "net_income": 59688,
+        "cfo": 24077,
+        "fcf": 21341
+      },
+      "Q1FY27": {
+        "revenue": 81615,
+        "gross_profit_implied": 61157,
+        "operating_income": 53536,
+        "net_income": 58321,
+        "cfo": 50344,
+        "fcf": 48554
+      },
+      "Q2FY26": {
+        "revenue": 46743,
+        "gross_profit_implied": 33853,
+        "operating_income": 28440,
+        "net_income": 26422,
+        "cfo": 15365,
+        "fcf": 13450
+      }
+    },
+    "outputs": {
+      "operating_margin": {
+        "Q2FY27": 0.662371,
+        "Q1FY27": 0.655958,
+        "Q2FY26": 0.608433
+      },
+      "net_margin_gaap": {
+        "Q2FY27": 0.620322,
+        "Q1FY27": 0.714587,
+        "Q2FY26": 0.565261
+      },
+      "fcf_margin": {
+        "Q2FY27": 0.221792,
+        "Q1FY27": 0.594915,
+        "Q2FY26": 0.287744
+      },
+      "fcf_conversion": {
+        "Q2FY27": 0.357543,
+        "Q1FY27": 0.83253,
+        "Q2FY26": 0.509045
+      },
+      "gross_margin_tieout_ok": {
+        "Q2FY27_gaap": true,
+        "Q2FY27_nongaap": true,
+        "Q1FY27_gaap": true,
+        "Q2FY26_gaap": true
+      }
+    },
+    "assumptions": [
+      {
+        "name": "capex_input",
+        "value": "capex input to merlin.calc.ratios set so that cfo - capex equals the reported (summary) FCF",
+        "rationale": "Capex was not supplied directly; the calculator FCF equals the reported FCF of 21,341 / 48,554 / 13,450, so only FCF-based ratios are reported and no capex figure is asserted.",
+        "status": "ASSUMPTION"
+      },
+      {
+        "name": "fiscal_calendar",
+        "value": "Q2 FY27 = quarter ended 2026-07-26",
+        "rationale": "As printed in the release per caller pack.",
+        "status": "PROVISIONAL"
+      }
+    ],
+    "limitations": [
+      "No valuation model: no market price was retrieved and no consensus; this is an earnings-quality and trend review, not a valuation.",
+      "Cash-flow inputs come from a summary of a truncated page (PROVISIONAL)."
+    ]
+  },
+  "scenarios": [
+    {
+      "name": "bull",
+      "narrative": "Q3 FY27 lands at or above the top of the +/-2% range with gross margin at the top of 74.0% +/-50bp; Q2 cash shortfall proves to be timing (supply prepayments/receivables) and reverses; China compute adds upside not in guidance.",
+      "key_assumptions": {
+        "revenue_vs_guide": "top of range or above",
+        "gross_margin": "about 74.5%",
+        "cfo_conversion": "rebounds toward Q1 FY27 levels"
+      }
+    },
+    {
+      "name": "base",
+      "narrative": "Q3 FY27 delivers near the $108.0bn midpoint (+12.2% q/q) with gross margin about 74.0%; operating margin broadly stable as opex grows about 9% q/q; FCF conversion partially recovers.",
+      "key_assumptions": {
+        "revenue_vs_guide": "midpoint",
+        "gross_margin": "74.0%",
+        "opex_gaap": "about $9.2bn"
+      }
+    },
+    {
+      "name": "bear",
+      "narrative": "Sequential growth slows toward the bottom of the range, gross margin drifts to the low end (73.5%) on mix/new-product ramps, working-capital build persists so capital returns keep exceeding FCF, and equity-securities marks turn negative, hitting GAAP EPS; leadership transition adds execution uncertainty.",
+      "key_assumptions": {
+        "revenue_vs_guide": "bottom of range",
+        "gross_margin": "about 73.5%",
+        "equity_securities": "mark-to-market losses"
+      }
+    }
+  ],
+  "counterarguments": [
+    "The cash-flow weakness may be an artefact of the truncated-page summary; if the 10-Q shows different CFO/FCF, finding 2 falls away.",
+    "Decelerating q/q growth from a much larger base is normal and the guide may be conservative, as with prior NVIDIA guides; without consensus the deceleration cannot be called a disappointment.",
+    "A one-point gross-margin step-down guided for Q3 may reflect new-product ramp costs that historically recovered, rather than pricing pressure.",
+    "GAAP net income benefiting from equity marks inflates Q1/Q2 GAAP figures; investors relying on GAAP P/E overstate earnings power, while non-GAAP figures may understate the economic value of the investment portfolio."
+  ],
+  "risks": [
+    {
+      "risk": "Cash conversion: FCF fell to 35.8% of GAAP net income while ~$26.0bn was returned; if persistent, the return pace depends on drawing down the liquidity pool.",
+      "evidence_ids": [
+        "E1",
+        "E2"
+      ]
+    },
+    {
+      "risk": "Concentration: Data Center is $89.0bn of $96.2bn revenue; hyperscaler capex cycles directly drive results.",
+      "evidence_ids": [
+        "E1"
+      ]
+    },
+    {
+      "risk": "Earnings volatility from a $42.8bn marketable equity-securities book marked through GAAP net income.",
+      "evidence_ids": [
+        "E1",
+        "E2"
+      ]
+    },
+    {
+      "risk": "China export restrictions: guidance assumes no China Data Center compute; H20 charge history ($4.5bn reference, wording incomplete) shows inventory/charge risk from policy changes.",
+      "evidence_ids": [
+        "E1",
+        "E2"
+      ]
+    },
+    {
+      "risk": "Leadership: a CEO transition announcement dated 2026-11-12 was not read; its terms and timing are an unassessed thesis risk.",
+      "evidence_ids": [
+        "E5"
+      ]
+    },
+    {
+      "risk": "Gross-margin step-down guided to 74.0% from 75.0%.",
+      "evidence_ids": [
+        "E1"
+      ]
+    }
+  ],
+  "unknowns": [
+    "Consensus estimates for Q2 FY27 and Q3 FY27 (no licensed connector): no beat/miss can be stated.",
+    "CFO commentary and earnings-call transcript (not fetched): management explanation of the cash-flow drop, gross-margin guide and segment drivers is missing.",
+    "Data Center compute vs networking split and the composition of the new Edge Computing segment.",
+    "Exact H20 charge/(release) amounts by quarter and their gross-margin effect (footnote incomplete).",
+    "Sign and classification of the equity-securities gains line (summary unclear) and the reconciliation from GAAP to non-GAAP net income.",
+    "Working-capital, inventory, supply-commitment and capex detail behind the 52.2% q/q CFO decline (10-Q not retrieved; EDGAR fetch failed).",
+    "Content of the 2026-11-12 CEO transition release.",
+    "Q3 FY27 results date and outcome (not yet reported as of 2026-11-14)."
+  ],
+  "implications": [
+    {
+      "audience": "marcus",
+      "text": "Treat Q2 FY27 as strong on growth and operating margin but with an unexplained cash-conversion drop and a modest margin step-down guide; read the 2026-11-12 CEO transition release and the Q3 FY27 print (due shortly) before relying on this review. No consensus was available, so nothing here establishes beat/miss."
+    },
+    {
+      "audience": "quant",
+      "text": "Challenge: (1) whether the CFO/FCF figures (summary-level) hold against the 10-Q; (2) the gap between GAAP and non-GAAP EPS driven by equity-securities marks; (3) whether 12.2% implied q/q growth plus a 74.0% gross-margin guide is consistent with operating-margin stability given opex growing 9.4%."
+    },
+    {
+      "audience": "owner",
+      "text": "Results show continued very rapid growth and the highest margins of the three quarters reviewed, but cash generation fell sharply in the quarter and a CEO change was announced on 2026-11-12. Research only; no rating or action."
+    },
+    {
+      "audience": "tradingagents",
+      "text": "Fundamental inputs available as PROVISIONAL figures: revenue +105.9% y/y, GAAP operating margin 66.2%, non-GAAP EPS $2.22, Q3 guide $108.0bn +/-2%, FCF conversion 35.8%. Flag the leadership-transition event for the news analyst."
+    }
+  ],
+  "evidence": [
+    {
+      "evidence_id": "E1",
+      "title": "NVIDIA Announces Financial Results for Second Quarter Fiscal 2027 (verbatim portions)",
+      "publisher": "NVIDIA",
+      "kind": "press_release",
+      "status": "PROVISIONAL",
+      "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027",
+      "document_date": "2026-08-26",
+      "period": "Q2 FY27 (quarter ended 2026-07-26)",
+      "retrieved_at": "2026-11-14T12:15:00Z",
+      "notes": "Caller-supplied verbatim extract from a web fetch by the Merlin Claude Cloud session; not re-read from the original in this run, hence PROVISIONAL. Internal gross-margin tie-outs pass for Q2 FY27 (GAAP and non-GAAP), Q1 FY27 and Q2 FY26."
+    },
+    {
+      "evidence_id": "E2",
+      "title": "NVIDIA Q2 FY27 press release (summary of truncated portion: cash flow, capital returns, equity gains, H20 footnote)",
+      "publisher": "NVIDIA",
+      "kind": "press_release",
+      "status": "PROVISIONAL",
+      "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-second-quarter-fiscal-2027",
+      "document_date": "2026-08-26",
+      "period": "Q2 FY27, Q1 FY27, Q2 FY26",
+      "retrieved_at": "2026-11-14T12:15:00Z",
+      "notes": "Model summary of a truncated part of the page per caller; sign of equity-securities gains and the H20 footnote wording are unclear."
+    },
+    {
+      "evidence_id": "E3",
+      "title": "NVIDIA Investor Relations - Financial Reports",
+      "publisher": "NVIDIA",
+      "kind": "other",
+      "status": "PROVISIONAL",
+      "url": "https://investor.nvidia.com/financial-info/financial-reports/default.aspx",
+      "document_date": "2026-11-14",
+      "period": "Latest reported quarter check",
+      "retrieved_at": "2026-11-14T12:15:00Z",
+      "notes": "Caller reports it confirms Q2 FY27 is the latest results release and Q3 FY27 is not yet reported."
+    },
+    {
+      "evidence_id": "E4",
+      "title": "SEC EDGAR 8-K / 10-Q listing for NVIDIA",
+      "publisher": "U.S. SEC",
+      "kind": "filing",
+      "status": "FAILED",
+      "url": "https://www.sec.gov/cgi-bin/browse-edgar?action=getcompany&CIK=0001045810",
+      "retrieved_at": "2026-11-14T12:15:00Z",
+      "notes": "Caller retrieval refused (robots.txt). Supports no figure."
+    },
+    {
+      "evidence_id": "E5",
+      "title": "NVIDIA Announces CEO Transition",
+      "publisher": "NVIDIA",
+      "kind": "press_release",
+      "status": "UNKNOWN",
+      "document_date": "2026-11-12",
+      "notes": "Listed in the NVIDIA news feed per caller; content not read. Referenced only as an unassessed event."
+    },
+    {
+      "evidence_id": "E6",
+      "title": "NVIDIA CFO Commentary Q2 FY27",
+      "publisher": "NVIDIA",
+      "kind": "other",
+      "status": "FAILED",
+      "notes": "No direct URL; not fetched."
+    },
+    {
+      "evidence_id": "E7",
+      "title": "Consensus estimates and Q2 FY27 earnings call transcript",
+      "publisher": "n/a",
+      "kind": "other",
+      "status": "UNKNOWN",
+      "notes": "No licensed connector for consensus; transcript not fetched."
+    }
+  ],
+  "limitations": [
+    "All source data is caller-supplied; Merlin did not re-read the original documents in this run, so nothing is VERIFIED.",
+    "No consensus: the earnings-analysis beat/miss section is not possible; comparisons are vs prior quarter, year-ago quarter and company guidance only.",
+    "Cash-flow, capital-return detail and equity-gains lines are summary-level (PROVISIONAL) from a truncated page.",
+    "No 10-Q, CFO commentary or transcript; segment detail limited to Data Center and Edge Computing headline numbers.",
+    "No valuation: no market price retrieved.",
+    "Results were released 2026-08-26 and Q3 FY27 results are imminent; this review will be superseded shortly."
+  ],
+  "quality_status": "PROVISIONAL",
+  "quality_notes": "All figures rest on caller-supplied evidence (verbatim press-release extract plus a summary of a truncated section) not re-read from the original in this run; the income-statement print ties out internally for three quarters, which supports transcription accuracy. EDGAR and CFO commentary failed, consensus and transcript unavailable, and the CEO-transition release is unread. Every derived number came from python -m merlin calc. Validator: PASS, no issues."
+}

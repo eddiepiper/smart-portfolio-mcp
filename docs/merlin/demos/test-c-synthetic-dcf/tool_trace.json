@@ -1,0 +1,30 @@
+{
+  "tool_counts": {
+    "Bash": 6,
+    "Grep": 3,
+    "Read": 4,
+    "Glob": 1,
+    "Skill": 1,
+    "Write": 1,
+    "Edit": 1,
+    "StructuredOutput": 1
+  },
+  "skills": [
+    "dcf-model"
+  ],
+  "agents": [],
+  "fetched_urls": [],
+  "plugins": [
+    "financial-analysis",
+    "equity-research",
+    "market-researcher",
+    "earnings-reviewer",
+    "model-builder",
+    "product-management",
+    "cowork-plugin-management",
+    "cc-plugin-agents-md",
+    "cc-plugin-telemetry",
+    "cc-plugin-privacy",
+    "cc-plugin-plugin-authoring"
+  ]
+}

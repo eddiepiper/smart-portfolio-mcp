@@ -1,0 +1,89 @@
+{
+  "status": "PASS",
+  "cost_usd": 1.3402852,
+  "num_turns": 28,
+  "tools_observed": {
+    "Skill": 2,
+    "Bash": 15,
+    "Grep": 4,
+    "Read": 2,
+    "Write": 1,
+    "StructuredOutput": 1
+  },
+  "skills_observed": [
+    "sector-overview",
+    "competitive-analysis"
+  ],
+  "agents_observed": [],
+  "plugins_loaded": [
+    "financial-analysis",
+    "equity-research",
+    "market-researcher",
+    "earnings-reviewer",
+    "model-builder",
+    "product-management",
+    "cowork-plugin-management",
+    "cc-plugin-agents-md",
+    "cc-plugin-telemetry",
+    "cc-plugin-privacy",
+    "cc-plugin-plugin-authoring"
+  ],
+  "permission_denials": [],
+  "validation_at_run": "FAIL",
+  "validation": {
+    "status": "PASS",
+    "report_id": "mrep_semis_20261114",
+    "quality_status": "PROVISIONAL",
+    "suggested_quality_status": "PROVISIONAL",
+    "figures": 43,
+    "evidence": 10,
+    "issues": [],
+    "observed": {
+      "tool_counts": {
+        "Skill": 2,
+        "Bash": 15,
+        "Grep": 4,
+        "Read": 2,
+        "Write": 1,
+        "StructuredOutput": 1
+      },
+      "skills": [
+        "sector-overview",
+        "competitive-analysis"
+      ],
+      "agents": [],
+      "fetched_urls": [],
+      "plugins": [
+        "financial-analysis",
+        "equity-research",
+        "market-researcher",
+        "earnings-reviewer",
+        "model-builder",
+        "product-management",
+        "cowork-plugin-management",
+        "cc-plugin-agents-md",
+        "cc-plugin-telemetry",
+        "cc-plugin-privacy",
+        "cc-plugin-plugin-authoring"
+      ],
+      "bash_commands": [
+        "python -m merlin calc --help",
+        "python -m merlin calc compare --inputs '{\"current\":{\"nvda_rev\":96221,\"mu_rev\":54.23},\"prior\":{\"nvda_rev\":46743,\"mu_rev\":11.32},\"keys\":[\"nvda_rev\",\"mu_rev\"]}'",
+        "python -m merlin calc compare --inputs '{\"current\":{\"mu_rev\":54.23,\"nvda_next\":108.0,\"amd_next\":17.0,\"mu_next\":61.5},\"prior\":{\"mu_rev\":41.46,\"nvda_next\":96.221,\"amd_next\":13.377,\"mu_next\":54.23},\"keys\":[\"mu_rev\",\"nvda_next\",\"amd_next\",\"mu_next\"]}'",
+        "python -m merlin calc arith --inputs '{\"op\":\"sum\",\"values\":[52.3,54.3]}'",
+        "python -m merlin calc arith --inputs '{\"op\":\"ratio\",\"values\":[517.7,1.241]}'",
+        "python -m merlin calc arith --inputs '{\"op\":\"diff\",\"values\":[1655,702,517.7]}'",
+        "python -m merlin calc arith --inputs '{\"op\":\"product\",\"values\":[172.6,3]}'",
+        "python -m merlin calc ratios --inputs '{\"revenue\":96221,\"operating_income\":63734}'",
+        "python -m merlin calc arith --inputs '{\"op\":\"share\",\"values\":[89.0,96.221]}'",
+        "python -m merlin calc arith --inputs '{\"op\":\"sum\",\"values\":[8,33,28,10]}'",
+        "python -m merlin calc arith --inputs '{\"op\":\"ratio\",\"values\":[106.6,2]}'",
+        "python -m merlin calc compare --inputs '{\"current\":{\"tsmc_q4_mid\":53.3,\"wsts_implied_q4\":435.3},\"prior\":{\"tsmc_q4_mid\":46.72,\"wsts_implied_q4\":517.7},\"keys\":[\"tsmc_q4_mid\",\"wsts_implied_q4\"]}'",
+        "python -m merlin calc arith --inputs '{\"op\":\"diff\",\"values\":[702,417.163578]}'",
+        "python -m merlin calc arith --inputs '{\"op\":\"sum\",\"values\":[702,517.7]}'",
+        "python -m merlin validate /tmp/claude-0/-home-claude-smart-portfolio-mcp/e214bf35-3bec-435a-9d12-bba603f9e39e/scratchpad/semis_report.json"
+      ]
+    }
+  },
+  "note": "At run time the runner failed this report on a false positive (it looked for a Skill call for \"python -m merlin validate\", which runs through Bash). Fixed in runner.cross_check_capabilities; re-checked from the stored stream with runner.recheck."
+}

@@ -49,7 +49,8 @@ def _fake_cli(raw, rc=0):
         lines = [{"type": "system", "subtype": "init", "plugins": [{"name": "equity-research"}]},
                  {"type": "assistant", "message": {"content": [
                      {"type": "tool_use", "name": "Skill", "input": {"skill": "equity-research:earnings-analysis"}},
-                     {"type": "tool_use", "name": "WebFetch", "input": {"url": "https://example.com"}}]}},
+                     {"type": "tool_use", "name": "WebFetch", "input": {"url": "https://example.com"}},
+                     {"type": "tool_use", "name": "Bash", "input": {"command": "python -m merlin calc dcf --inputs '{}'"}}]}},
                  {"type": "result", "is_error": False, "subtype": "success", "structured_output": raw,
                   "total_cost_usd": 0.5, "num_turns": 7}]
         return subprocess.CompletedProcess(cmd, rc, stdout="\n".join(json.dumps(x) for x in lines), stderr="")
@@ -122,3 +123,15 @@ def test_capability_name_matching():
     assert runner._claimed_ran("model-builder:dcf-model", {"dcf-model"})
     assert not runner._claimed_ran("dcf-model", {"dcf"})
     assert not runner._claimed_ran("earnings-analysis", {"dcf-model"})
+
+
+def test_merlin_cli_claims_checked_against_bash_trace(tmp_path):
+    raw = make_report()
+    raw["capabilities_used"].append({"name": "python -m merlin validate", "kind": "merlin_skill", "genuine_execution": True})
+    fake, _ = _fake_cli(raw)
+    req = Request(task_type="financial_model", subject="SYNTH", question="q", as_of="2026-11-14")
+    res = runner.run(req, tmp_path / "r", runner=fake)
+    assert res["status"] == "FAIL"                     # trace has `merlin calc` only, no `merlin validate`
+    raw2 = make_report()                               # merlin_calc claim is matched by the traced calc call
+    fake2, _ = _fake_cli(raw2)
+    assert runner.run(req, tmp_path / "r2", runner=fake2)["status"] in ("PASS", "WARN")

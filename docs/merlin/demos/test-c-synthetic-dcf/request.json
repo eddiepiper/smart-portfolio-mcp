@@ -1,0 +1,9 @@
+{
+  "task_type": "financial_model",
+  "subject": "Synthetic Co (SYNTHCO)",
+  "question": "Construct a basic, reproducible 5-year FCFF DCF for a SYNTHETIC company using these synthetic inputs (label them ASSUMPTION, not fact): base-year revenue USD 10,000m; revenue growth 12%, 10%, 8%, 6%, 5%; EBIT margin 18% flat; cash tax rate 21%; D&A 4% of revenue; capex 5% of revenue; change in NWC 10% of the revenue change; WACC built by CAPM with risk-free 4.2%, beta 1.1, equity risk premium 5.0%, pre-tax cost of debt 5.5%, market equity value USD 30,000m, debt USD 3,000m; terminal growth 2.5%; net debt USD 1,500m; 500m diluted shares. Use the Anthropic dcf-model method. Give the WACC build, FCFF schedule, EV-to-equity bridge, value per share, terminal value share of EV and implied exit multiple, a 5x5 WACC x terminal-growth sensitivity whose centre is the base case, and bull/base/bear cases (bull: EBIT margin 21%, growth +2pts each year; bear: EBIT margin 15%, growth -3pts each year). All arithmetic via python -m merlin calc.",
+  "as_of": "2026-11-14",
+  "requested_by": "test",
+  "instrument_id": null,
+  "request_id": "mreq_12e8a4abea0d"
+}

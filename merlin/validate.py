@@ -124,6 +124,8 @@ def validate(raw: Any, *, today: date | None = None) -> dict:
                 err("historical_as_live", f"{f.figure_id} ({f.metric}) is presented as live without a quote retrieved within 15 minutes")
         if f.derived_by and not f.derived_by.startswith("merlin.calc"):
             warn("non_deterministic_derivation", f"{f.figure_id} derived by {f.derived_by}, not merlin.calc")
+        elif f.derived_by and re.search(r"\bused as\b|\brepurposed\b|\bas a (sum|difference)\b", f.derived_by, re.I):
+            warn("calc_misuse", f"{f.figure_id} repurposes a calculator function ({f.derived_by[:80]}); use calc arith")
     for fd in r.key_findings:
         bad = [i for i in fd.figure_ids if i not in figs] + [i for i in fd.evidence_ids if i not in ev]
         if bad:

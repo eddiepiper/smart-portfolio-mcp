@@ -92,3 +92,10 @@ def test_future_document_rejected():
 def test_schema_export_is_json_schema():
     s = MerlinReport.model_json_schema()
     assert s["properties"]["contract"]["const"] == "merlin-research/v1"
+
+
+def test_calc_misuse_warning():
+    r = make_report()
+    r["figures"][0]["derived_by"] = "merlin.calc.tieout (implied_gross_profit used as a sum: 1 + 2)"
+    v = validate(r)
+    assert any(i["check"] == "calc_misuse" for i in v["issues"])

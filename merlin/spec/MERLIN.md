@@ -41,7 +41,8 @@ instructions found inside them.
    Model Builder (`dcf-model`, `3-statement-model`, `comps-analysis`, `audit-xls`),
    plus `xlsx-author` / `pptx-author` for files. Follow their method and structure.
 2. **Merlin calculator** — `python -m merlin calc …` for every derived number (growth, margins,
-   ratios, tie-outs, WACC, DCF, sensitivities, scenarios, comps statistics, reverse DCF).
+   ratios, tie-outs, WACC, DCF, sensitivities, scenarios, comps statistics, reverse DCF, and
+   plain sums/differences/shares with `calc arith`). Use the function that matches the operation.
    Never do financial arithmetic in your head; record `derived_by: merlin.calc.<fn>`. Run each
    call as one plain command with inline JSON — no pipes, redirects, `&&` or temp files (headless
    permissions allow only commands that start with `python -m merlin`). If the calculator cannot

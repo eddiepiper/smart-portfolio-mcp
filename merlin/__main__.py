@@ -6,6 +6,7 @@
     python -m merlin calc compare --inputs '{"current": {...}, "prior": {...}, "keys": [...]}'
     python -m merlin calc tieout --inputs '{"revenue":..,"opex":..,"operating_income":..,"reported_gross_margin":..}'
     python -m merlin calc comps --inputs '{"NVDA": 30.1, "AMD": 25.0}'
+    python -m merlin calc arith --inputs '{"op": "diff", "values": [1655, 702, 517.7]}'   # sum|diff|product|ratio|share
     python -m merlin validate report.json                     # PASS / WARN / FAIL (exit 0 / 0 / 3)
     python -m merlin render report.json [--out report.md]
     python -m merlin reproduce report.json                    # re-run the stored DCF
@@ -46,7 +47,7 @@ def main(argv=None) -> int:
     sub = ap.add_subparsers(dest="cmd", required=True)
     sub.add_parser("schema")
     c = sub.add_parser("calc")
-    c.add_argument("kind", choices=["dcf", "ratios", "compare", "tieout", "comps", "wacc", "cagr", "reverse_dcf"])
+    c.add_argument("kind", choices=["dcf", "ratios", "compare", "tieout", "comps", "wacc", "cagr", "reverse_dcf", "arith"])
     c.add_argument("--inputs", required=True, help="JSON string or path")
     c.add_argument("--sensitivity", help='JSON: {"row_key":..,"rows":[..],"col_key":..,"cols":[..]}')
     c.add_argument("--scenarios", help='JSON: {"bull": {"projection": {...}}, "bear": {...}}')
@@ -99,6 +100,8 @@ def main(argv=None) -> int:
             ke = x.get("cost_of_equity") or calc.capm(x["risk_free"], x["beta"], x["equity_risk_premium"])
             res = {"cost_of_equity": ke, **calc.wacc(ke, x["pre_tax_cost_of_debt"], x["tax_rate"],
                                                      x["equity_value"], x["debt_value"])}
+        elif a.kind == "arith":
+            res = {"op": x["op"], "values": x["values"], "value": calc.arith(x["op"], x["values"])}
         elif a.kind == "cagr":
             res = {"cagr": calc.cagr(x["start"], x["end"], x["years"])}
         else:

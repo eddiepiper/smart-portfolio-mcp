@@ -138,7 +138,7 @@ def run(req: Request, out_dir: Path, *, model: Optional[str] = None, max_budget_
 def parse_stream(stdout: str) -> dict:
     """Read the CLI's stream-json: which tools, skills and subagents actually ran, which plugins
     were loaded, and the final result event. This is the evidence for `genuine_execution`."""
-    tools, skills, agents, fetched, plugins, result = {}, [], [], [], [], None
+    tools, skills, agents, fetched, plugins, bash, result = {}, [], [], [], [], [], None
     for line in stdout.splitlines():
         try:
             d = json.loads(line)
@@ -159,10 +159,12 @@ def parse_stream(stdout: str) -> dict:
                     agents.append(inp.get("subagent_type") or "general-purpose")
                 elif name == "WebFetch":
                     fetched.append(inp.get("url"))
+                elif name == "Bash":
+                    bash.append((inp.get("command") or "")[:300])
         elif t == "result":
             result = d
     return {"tool_counts": tools, "skills": skills, "agents": agents, "fetched_urls": fetched,
-            "plugins": plugins, "result": result}
+            "plugins": plugins, "bash_commands": bash, "result": result}
 
 
 def _short(name: str) -> str:
@@ -181,7 +183,16 @@ def cross_check_capabilities(raw: dict, trace: dict, v: dict) -> dict:
     ran = {_short(s) for s in trace.get("skills", [])} | {_short(a) for a in trace.get("agents", [])}
     issues = list(v.get("issues", []))
     for c in raw.get("capabilities_used", []) if isinstance(raw, dict) else []:
-        if c.get("genuine_execution") and c.get("kind") in ("fsi_plugin_skill", "fsi_agent", "merlin_skill"):
+        name = (c.get("name") or "").lower()
+        if c.get("genuine_execution") and ("merlin" in name and re.search(r"\b(calc|validate|render|reproduce|schema)\b", name)
+                                           or c.get("kind") == "merlin_calc"):
+            # Merlin's own CLI runs through Bash: look for the subcommand in the traced commands
+            subs = re.findall(r"\b(calc|validate|render|reproduce|schema)\b", name) or ["calc"]
+            cmds = [b for b in trace.get("bash_commands", []) if "merlin" in b]
+            if not any(re.search(rf"merlin\s+{s}\b", b) for b in cmds for s in subs):
+                issues.append({"severity": "error", "check": "unverified_capability_claim",
+                               "message": f"report claims {c.get('name')} ran, but no matching `python -m merlin` command is in the trace"})
+        elif c.get("genuine_execution") and c.get("kind") in ("fsi_plugin_skill", "fsi_agent", "merlin_skill"):
             if not _claimed_ran(c.get("name"), ran):
                 issues.append({"severity": "error", "check": "unverified_capability_claim",
                                "message": f"report claims {c.get('name')} ran, but the CLI stream shows no such skill/agent call"})
@@ -192,7 +203,7 @@ def cross_check_capabilities(raw: dict, trace: dict, v: dict) -> dict:
     errors = [i for i in issues if i["severity"] == "error"]
     status = "FAIL" if errors else ("WARN" if issues else "PASS")
     return {**v, "status": status, "issues": issues, "observed": {k: trace.get(k) for k in
-            ("tool_counts", "skills", "agents", "fetched_urls", "plugins")}}
+            ("tool_counts", "skills", "agents", "fetched_urls", "plugins", "bash_commands")}}
 
 
 def request_from_args(task_type: str, subject: str, question: str, as_of: Optional[str] = None,
@@ -200,3 +211,10 @@ def request_from_args(task_type: str, subject: str, question: str, as_of: Option
     return Request(task_type=task_type, subject=subject, question=question,
                    as_of=date.fromisoformat(as_of) if as_of else date.today(),
                    requested_by=requested_by, instrument_id=instrument_id)
+
+
+def recheck(out_dir: Path) -> dict:
+    """Re-run validation and the tool-trace cross-check on a finished run directory."""
+    raw = json.loads((out_dir / "report.json").read_text())
+    trace = parse_stream((out_dir / "claude_stream.jsonl").read_text())
+    return cross_check_capabilities(raw, trace, validate(raw))

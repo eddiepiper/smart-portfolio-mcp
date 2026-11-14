@@ -84,3 +84,12 @@ def test_reproduce_detects_tampering():
     assert calc.reproduce({"inputs": DCF_INPUTS, "outputs": out})["ok"] is True
     out2 = {**out, "value_per_share": 250.0}
     assert calc.reproduce({"inputs": DCF_INPUTS, "outputs": out2})["ok"] is False
+
+
+def test_arith():
+    assert calc.arith("sum", [702, 517.7]) == 1219.7
+    assert calc.arith("diff", [1655, 702, 517.7]) == 435.3
+    assert calc.arith("share", [89000, 96221]) == 0.924954
+    assert calc.arith("product", [2, 3, 4]) == 24
+    with pytest.raises(calc.CalcError):
+        calc.arith("ratio", [1, 0])
