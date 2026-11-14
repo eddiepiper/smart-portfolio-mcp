@@ -77,7 +77,7 @@ def main(argv=None) -> int:
         L.append("")
         return m, q, c, j, p
 
-    _, _, _, _, p_aapl = section("A. AAPL: agreement, approved, executed", "AAPL")
+    _, _, _, _, p_aapl = section("A. AAPL (executed if the policy and risk gate allow)", "AAPL")
     # B. a rejected trade: the same research, but an oversized order
     big = p_aapl.model_copy(update={"proposal_id": "prop-demo-oversized", "action": Action.BUY, "quantity": 120,
                                      "status": "PROPOSED", "eligibility": "ELIGIBLE", "eligibility_reasons": []})
@@ -86,8 +86,8 @@ def main(argv=None) -> int:
     _, r = team.execute(big.proposal_id, now=NOW)
     L.extend(["## B. Rejected trade: an oversized AAPL order (120 shares)", "",
               f"Risk gate `{r.result_id}`: **{r.outcome}**", *[f"- {x}" for x in r.reasons], ""])
-    section("C. NVDA: explicit disagreement (no trade)", "NVDA")
-    section("D. MSFT: neutral fundamentals", "MSFT")
+    section("C. NVDA (expected disagreement)", "NVDA")
+    section("D. MSFT", "MSFT")
 
     for d in (date(2026, 11, 9), date(2026, 11, 10), date(2026, 11, 11), date(2026, 11, 12), date(2026, 11, 13)):
         team.engine.apply_corporate_actions(d)

@@ -2,7 +2,7 @@
 
 Data: SYNTHETIC_FIXTURE v1 (deterministic, seeded; not market history). Decision cutoff 2026-11-06 close; evaluated 2026-11-06 21:00 ET / 2026-11-07 10:00 SGT. PAPER ONLY: synthetic capital, simulated fills, synthetic instruments. Research, not advice.
 
-## A. AAPL: agreement, approved, executed
+## A. AAPL (executed if the policy and risk gate allow)
 
 **1. Merlin** `merlin-af3e26432a4f4012`: BULLISH (conviction 0.70); fair value base 304.22 vs price 228.24; FSI skills invoked: none (runtime without plugins).
    - bull: CAGR 10.3%, terminal FCF margin 30.3%, WACC 8.5%, g 3.0% -> 483.13 (+111.7%)
@@ -26,7 +26,7 @@ Risk gate `risk-4ae2e5e943832263`: **REJECT**
 - max_position_exposure: post-trade AAPL weight 35.38% vs limit 10%
 - concentration_limit: post-trade sector 'Technology Hardware' weight 35.38% vs limit 20%
 
-## C. NVDA: explicit disagreement (no trade)
+## C. NVDA (expected disagreement)
 
 **1. Merlin** `merlin-497dda81d337e05f`: BULLISH (conviction 0.70); fair value base 120.64 vs price 83.66; FSI skills invoked: none (runtime without plugins).
    - bull: CAGR 35.0%, terminal FCF margin 51.1%, WACC 8.5%, g 3.0% -> 179.84 (+115.0%)
@@ -46,7 +46,7 @@ Risk gate `risk-4ae2e5e943832263`: **REJECT**
    - [market_timing/medium] Entry now buys into a falling trend; fundamentals may be right and early.
 **5. Proposal** `prop-9d737a614a1fa682`: NO_ACTION 0 @ ref 83.66 (2026-11-06), target weight 0%. Leads disagree: disagreement never adds exposure under the policy.
 
-## D. MSFT: neutral fundamentals
+## D. MSFT
 
 **1. Merlin** `merlin-23401330064916e8`: NEUTRAL (conviction 0.50); fair value base 446.44 vs price 441.32; FSI skills invoked: none (runtime without plugins).
    - bull: CAGR 14.7%, terminal FCF margin 33.6%, WACC 8.5%, g 3.0% -> 695.89 (+57.7%)
@@ -68,7 +68,7 @@ Risk gate `risk-4ae2e5e943832263`: **REJECT**
 
 ## 8. Portfolio (2026-11-13 close, fictional)
 
-Cash 91,998.82 | NAV 100,061.42 | realised 0.00 | unrealised 61.42 | fees 1.00 | gross exposure 8.1% | ledger head `f5909185078d`
+Cash 91,998.82 | NAV 100,061.42 | realised 0.00 | unrealised 61.42 | fees 1.00 | gross exposure 8.1% | ledger head `6c3713003377`
 - AAPL: 35 @ avg 228.6052 mark 230.36 (2026-11-13) P&L 61.42 weight 8.1%
 
 ## 9. Performance snapshot (forward paper trading)
@@ -113,30 +113,30 @@ Limitations: Synthetic fixture data is not market history; results say nothing a
 ## 10. Audit trail (ledger events)
 
 ```
-  0 INIT             c2cad1bc7b {"base_currency": "USD", "benchmark": "SPY", "config_version": "cfg-628967630244", "data_source": "SYNTHETIC_FIXTURE v1 (deterministic, seeded; not ma
-  1 RESEARCH         61c3ac3328 {"id": "merlin-af3e26432a4f4012", "inputs_digest": "9d796b9dff82a12f0d0381e029dc83ff23e3d40270cb5d26c0c7301b5162e87b", "instrument": "AAPL", "record":
-  2 RESEARCH         5b00176ffe {"id": "quant-46d59be481d13f65", "inputs_digest": "c899dc4e314ce996dee9639fcfab2ead4da63a0d31840d17d0189145faadb453", "instrument": "AAPL", "record": 
-  3 RESEARCH         9cd10449c8 {"id": "challenge-bd03fb9893c24522", "record": "challenge", "verdict": "AGREE"}
-  4 PROPOSAL         2ae3ccfd77 {"action": "BUY", "assessment_id": "joint-fd54e6f546efb456", "instrument": "AAPL", "proposal_id": "prop-f74596317d816985", "quantity": 35}
-  5 APPROVAL         74d2eedbbb {"approved_by": "demo-owner", "proposal_id": "prop-f74596317d816985"}
-  6 RISK_RESULT      e188e6cb73 {"config_version": "cfg-628967630244", "outcome": "PASS", "proposal_id": "prop-f74596317d816985", "reasons": []}
-  7 ORDER_INTENT     8de4931952 {"adv": 50091131.75, "execution_id": "exe-c22f366fd0f521ec", "fill_session": "2026-11-09", "instrument": "AAPL", "open_price": 228.46, "proposal_id": 
-  8 FILL             752a208df3 {"commission": 1.0, "execution_id": "exe-c22f366fd0f521ec", "fill_price": 228.57660494339456, "fill_session": "2026-11-09", "instrument": "AAPL", "ope
-  9 APPROVAL         cd7a99b221 {"approved_by": "demo-owner", "proposal_id": "prop-demo-oversized"}
- 10 RISK_RESULT      59f7819585 {"config_version": "cfg-628967630244", "outcome": "REJECT", "proposal_id": "prop-demo-oversized", "reasons": ["order_size_valid: 120 sh x 228.24 = 27,
- 11 RESEARCH         598b295985 {"id": "merlin-497dda81d337e05f", "inputs_digest": "889c24d4245c0aea63850d1178f8da7157b5ccee364623253775dac83e4ccc22", "instrument": "NVDA", "record":
- 12 RESEARCH         643e409591 {"id": "quant-9e61a33040d726dd", "inputs_digest": "c2b8f4adb2b5aa7598c69cf23aecc46da8557813653234b8ca5dc2fc8ecb3d93", "instrument": "NVDA", "record": 
- 13 RESEARCH         f256bf63ac {"id": "challenge-b34eb87fe2f4ce9f", "record": "challenge", "verdict": "DISAGREE"}
- 14 PROPOSAL         e9092a9c1a {"action": "NO_ACTION", "assessment_id": "joint-9b241dd1f01f9a43", "instrument": "NVDA", "proposal_id": "prop-9d737a614a1fa682", "quantity": 0}
- 15 RESEARCH         60acb24992 {"id": "merlin-23401330064916e8", "inputs_digest": "39d636f0e846b9ec0e2cb08ec7e1b3c22e8067b013db013499dbe0dacb7fe109", "instrument": "MSFT", "record":
- 16 RESEARCH         0fbc299abd {"id": "quant-f2e521a06bc4fbec", "inputs_digest": "4117e204b56df8f72b2d5735902c0b0c349bda502e0f576ca9279b4ae4a127ac", "instrument": "MSFT", "record": 
- 17 RESEARCH         7114eb8aec {"id": "challenge-babada04416764b8", "record": "challenge", "verdict": "PARTIALLY_AGREE"}
- 18 PROPOSAL         ffccb04bd9 {"action": "NO_ACTION", "assessment_id": "joint-6de81a8b21b6a5a3", "instrument": "MSFT", "proposal_id": "prop-680480b7f03c1812", "quantity": 0}
- 19 NAV              87a807e29c {"benchmark": "SPY", "benchmark_close": 629.24, "cash": 91998.82, "date": "2026-11-09", "nav": 99959.92, "stale_marks": []}
- 20 NAV              b17306ec0a {"benchmark": "SPY", "benchmark_close": 629.22, "cash": 91998.82, "date": "2026-11-10", "nav": 99926.67, "stale_marks": []}
- 21 NAV              387e219840 {"benchmark": "SPY", "benchmark_close": 628.9, "cash": 91998.82, "date": "2026-11-11", "nav": 99874.17, "stale_marks": []}
- 22 NAV              e282e5da3a {"benchmark": "SPY", "benchmark_close": 634.2, "cash": 91998.82, "date": "2026-11-12", "nav": 99978.12, "stale_marks": []}
- 23 NAV              f590918507 {"benchmark": "SPY", "benchmark_close": 632.58, "cash": 91998.82, "date": "2026-11-13", "nav": 100061.42, "stale_marks": []}
+  0 INIT             4c4f2cf18e {"base_currency": "USD", "benchmark": "SPY", "config_version": "cfg-628967630244", "data_source": "SYNTHETIC_FIXTURE v1 (deterministic, seeded; not ma
+  1 RESEARCH         a61923e2da {"id": "merlin-af3e26432a4f4012", "inputs_digest": "9d796b9dff82a12f0d0381e029dc83ff23e3d40270cb5d26c0c7301b5162e87b", "instrument": "AAPL", "record":
+  2 RESEARCH         90c11ee3df {"id": "quant-46d59be481d13f65", "inputs_digest": "c899dc4e314ce996dee9639fcfab2ead4da63a0d31840d17d0189145faadb453", "instrument": "AAPL", "record": 
+  3 RESEARCH         e198b1524f {"id": "challenge-bd03fb9893c24522", "record": "challenge", "verdict": "AGREE"}
+  4 PROPOSAL         0635f4c061 {"action": "BUY", "assessment_id": "joint-fd54e6f546efb456", "instrument": "AAPL", "proposal_id": "prop-f74596317d816985", "quantity": 35}
+  5 APPROVAL         abdaa476b3 {"approved_by": "demo-owner", "proposal_id": "prop-f74596317d816985"}
+  6 RISK_RESULT      7bc773f5b2 {"config_version": "cfg-628967630244", "outcome": "PASS", "proposal_id": "prop-f74596317d816985", "reasons": []}
+  7 ORDER_INTENT     41404446a4 {"adv": 50091131.75, "execution_id": "exe-c22f366fd0f521ec", "fill_session": "2026-11-09", "instrument": "AAPL", "open_price": 228.46, "proposal_id": 
+  8 FILL             44f6ba27e7 {"commission": 1.0, "execution_id": "exe-c22f366fd0f521ec", "fill_price": 228.57660494339456, "fill_session": "2026-11-09", "instrument": "AAPL", "ope
+  9 APPROVAL         8006e892f5 {"approved_by": "demo-owner", "proposal_id": "prop-demo-oversized"}
+ 10 RISK_RESULT      0fccd5a4cd {"config_version": "cfg-628967630244", "outcome": "REJECT", "proposal_id": "prop-demo-oversized", "reasons": ["order_size_valid: 120 sh x 228.24 = 27,
+ 11 RESEARCH         b753ee5421 {"id": "merlin-497dda81d337e05f", "inputs_digest": "889c24d4245c0aea63850d1178f8da7157b5ccee364623253775dac83e4ccc22", "instrument": "NVDA", "record":
+ 12 RESEARCH         09cb7a5a69 {"id": "quant-9e61a33040d726dd", "inputs_digest": "c2b8f4adb2b5aa7598c69cf23aecc46da8557813653234b8ca5dc2fc8ecb3d93", "instrument": "NVDA", "record": 
+ 13 RESEARCH         c1c60dcf18 {"id": "challenge-b34eb87fe2f4ce9f", "record": "challenge", "verdict": "DISAGREE"}
+ 14 PROPOSAL         d6f3e43100 {"action": "NO_ACTION", "assessment_id": "joint-9b241dd1f01f9a43", "instrument": "NVDA", "proposal_id": "prop-9d737a614a1fa682", "quantity": 0}
+ 15 RESEARCH         15310628d8 {"id": "merlin-23401330064916e8", "inputs_digest": "39d636f0e846b9ec0e2cb08ec7e1b3c22e8067b013db013499dbe0dacb7fe109", "instrument": "MSFT", "record":
+ 16 RESEARCH         529b6485ab {"id": "quant-f2e521a06bc4fbec", "inputs_digest": "4117e204b56df8f72b2d5735902c0b0c349bda502e0f576ca9279b4ae4a127ac", "instrument": "MSFT", "record": 
+ 17 RESEARCH         ad9911e65f {"id": "challenge-babada04416764b8", "record": "challenge", "verdict": "PARTIALLY_AGREE"}
+ 18 PROPOSAL         f1c9f99110 {"action": "NO_ACTION", "assessment_id": "joint-6de81a8b21b6a5a3", "instrument": "MSFT", "proposal_id": "prop-680480b7f03c1812", "quantity": 0}
+ 19 NAV              3428bbb4d1 {"benchmark": "SPY", "benchmark_close": 629.24, "cash": 91998.82, "date": "2026-11-09", "nav": 99959.92, "stale_marks": []}
+ 20 NAV              bca841df90 {"benchmark": "SPY", "benchmark_close": 629.22, "cash": 91998.82, "date": "2026-11-10", "nav": 99926.67, "stale_marks": []}
+ 21 NAV              953a867981 {"benchmark": "SPY", "benchmark_close": 628.9, "cash": 91998.82, "date": "2026-11-11", "nav": 99874.17, "stale_marks": []}
+ 22 NAV              b0d990d360 {"benchmark": "SPY", "benchmark_close": 634.2, "cash": 91998.82, "date": "2026-11-12", "nav": 99978.12, "stale_marks": []}
+ 23 NAV              6c37130033 {"benchmark": "SPY", "benchmark_close": 632.58, "cash": 91998.82, "date": "2026-11-13", "nav": 100061.42, "stale_marks": []}
 ```
 
 Model calls: 45; reported cost USD: 0.0000.
