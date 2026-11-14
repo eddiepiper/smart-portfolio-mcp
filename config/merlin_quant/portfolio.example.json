@@ -1,0 +1,49 @@
+{
+  "_notice": "EXAMPLE VALUES ONLY. These are conservative illustrative prototype defaults chosen by the developer, NOT risk settings approved by the owner. PAPER_AUTO stays disabled until config_status is OWNER_CONFIGURED and the validation suite has passed.",
+  "config_status": "EXAMPLE",
+  "portfolio": {
+    "name": "merlin-quant-paper",
+    "initial_capital": 100000.0,
+    "base_currency": "USD",
+    "benchmark": "SPY",
+    "universe": ["AAPL", "MSFT", "NVDA"],
+    "sectors": {"AAPL": "Technology Hardware", "MSFT": "Software", "NVDA": "Semiconductors"}
+  },
+  "mode": "PAPER_MANUAL",
+  "risk": {
+    "max_position_weight": 0.10,
+    "max_gross_exposure": 0.60,
+    "max_sector_weight": 0.20,
+    "max_order_value": 15000.0,
+    "max_order_quantity": 10000,
+    "min_order_value": 100.0,
+    "cash_buffer_pct": 0.05,
+    "max_price_staleness_sessions": 0,
+    "max_drawdown_halt": 0.10,
+    "max_orders_per_session": 5,
+    "reference_price_tolerance": 0.001
+  },
+  "costs": {
+    "spread_bps": 5.0,
+    "commission_per_share": 0.005,
+    "min_commission": 1.0,
+    "impact_coefficient": 1.0,
+    "min_trade_pct": 0.0
+  },
+  "execution": {
+    "fill_session": "next_session_open",
+    "note": "A decision made on session D's close fills at the open of the next NYSE session after D, plus half-spread and square-root impact (ai-hedge-fund TradingCosts), plus commission."
+  },
+  "decision_policy": {
+    "full_target_weight": 0.08,
+    "partial_target_weight": 0.04,
+    "min_conviction": 0.5,
+    "rules": "BUY needs Merlin BULLISH with conviction >= min_conviction and a Quant verdict of AGREE or PARTIALLY_AGREE and a Quant stance that is not BEARISH. DISAGREE never adds exposure; with an existing position it REDUCEs to the partial weight when Quant is BEARISH. INCONCLUSIVE or INSUFFICIENT_EVIDENCE gives NO_ACTION."
+  },
+  "runtimes": {
+    "merlin": {"runtime": "scripted", "model": "claude-sonnet-5-5", "fsi_plugins": ["financial-analysis", "equity-research"]},
+    "quant": {"runtime": "scripted", "quick_model": "claude-haiku-5-5", "deep_model": "claude-sonnet-5-5", "analysts": ["market", "social", "news"], "max_debate_rounds": 1, "max_risk_rounds": 1},
+    "challenge": {"runtime": "scripted", "model": "claude-sonnet-5-5"}
+  },
+  "data": {"source": "synthetic_fixture"}
+}
