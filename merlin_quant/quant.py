@@ -238,7 +238,7 @@ def run_quant(view: PointInTimeView, symbol: str, benchmark: str, quick_rt: Runt
     synthetic = "SYNTHETIC" in view.source.upper()
     f = lambda k: ind.get(k)  # noqa: E731
     return QuantReport(
-        report_id=stable_id("quant", {"bundle": digest, "runtime": quick_rt.name}),
+        report_id=stable_id("quant", {"bundle": digest, "runtime": quick_rt.name, "reports": reports, "rating": rating}),
         instrument=symbol, market=view.profile(symbol).get("exchange", "US"), analysis_date=view.cutoff,
         data_cutoff=view.cutoff,
         indicators={k: (round(v, 6) if isinstance(v, float) else v) for k, v in ind.items() if not isinstance(v, str)},
@@ -360,7 +360,7 @@ def challenge(merlin: MerlinReport, quant: QuantReport, rt: Runtime) -> Challeng
     except ValueError:
         reasoning = r.text
     return ChallengeReport(
-        report_id=stable_id("challenge", {"m": merlin.report_id, "q": quant.report_id}),
+        report_id=stable_id("challenge", {"m": merlin.report_id, "q": quant.report_id, "reasoning": str(reasoning)}),
         merlin_report_id=merlin.report_id, quant_report_id=quant.report_id, instrument=merlin.instrument,
         verdict=verdict, challenges=ch, unsupported_assumptions=unsupported, reasoning=str(reasoning),
         run=RunMeta(runtime=rt.name, models=sorted(rt.meter.models), model_calls=rt.meter.calls - before,

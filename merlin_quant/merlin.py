@@ -184,7 +184,7 @@ def run_merlin(view: PointInTimeView, symbol: str, universe: list[str], research
           if isinstance(v, (int, float)) or v is None}
     fm["valuation_implied_upside_base"] = round(val["base"]["upside_pct"], 4)
     fm["pv_terminal_share_base"] = round(val["base"]["pv_terminal_share"], 4)
-    rid = stable_id("merlin", {"inputs": inputs, "runtime": rt.name})
+    rid = stable_id("merlin", {"inputs": inputs, "runtime": rt.name, "output": r.text})  # a rerun with new LLM output gets a new id
     return MerlinReport(
         report_id=rid, instrument=symbol, market=inputs["profile"].get("exchange", "US"),
         research_date=research_date, evidence_cutoff=view.cutoff, business_overview=out["business_overview"],

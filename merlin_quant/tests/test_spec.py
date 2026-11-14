@@ -447,3 +447,13 @@ def test_manual_mode_never_executes_without_approval(team):
         rr = risk_gate.evaluate(p, st, team.cfg, team.md, last_completed_session=CUTOFF,
                                 executed_proposals=st.filled, orders_this_session=0)
         team.engine.execute(p, rr)
+
+
+def test_rerun_with_different_llm_output_gets_new_report_id(md):
+    view = md.view(CUTOFF)
+    a = run_merlin(view, "AAPL", UNIVERSE, CUTOFF, ScriptedRuntime(scripted_merlin))
+    b = run_merlin(view, "AAPL", UNIVERSE, CUTOFF, ScriptedRuntime(scripted_merlin))
+    assert a.report_id == b.report_id  # same inputs, same output: same id
+    alt = ScriptedRuntime(lambda s, p: scripted_merlin(s, p).replace("[scripted] Valuation", "[scripted, run 2] Valuation"))
+    c = run_merlin(view, "AAPL", UNIVERSE, CUTOFF, alt)
+    assert c.report_id != a.report_id  # a different narrative is a different record

@@ -19,6 +19,7 @@ from pathlib import Path
 
 from merlin_quant.calendar import NY, fmt_times
 from merlin_quant.config import load_config
+from merlin_quant.contracts import Action
 from merlin_quant.data import synthetic_fixture
 from merlin_quant.performance import LIMITATIONS, score_research, series_metrics, trade_stats
 from merlin_quant.workflow import Team
@@ -78,7 +79,8 @@ def main(argv=None) -> int:
 
     _, _, _, _, p_aapl = section("A. AAPL: agreement, approved, executed", "AAPL")
     # B. a rejected trade: the same research, but an oversized order
-    big = p_aapl.model_copy(update={"proposal_id": "prop-demo-oversized", "quantity": 120, "status": "PROPOSED"})
+    big = p_aapl.model_copy(update={"proposal_id": "prop-demo-oversized", "action": Action.BUY, "quantity": 120,
+                                     "status": "PROPOSED", "eligibility": "ELIGIBLE", "eligibility_reasons": []})
     team.engine.records.put("proposals", big.proposal_id, big)
     team.approve(big.proposal_id, "demo-owner")
     _, r = team.execute(big.proposal_id, now=NOW)
