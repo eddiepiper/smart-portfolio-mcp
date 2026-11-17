@@ -21,4 +21,9 @@ Rules:
   test double and must never be presented as research.
 - Keep `MERLIN_QUANT_HOME` on durable storage; never delete or re-`init` an existing ledger.
 - Report Merlin's and Quant's views separately, quote the challenge verdict, and keep disagreements visible.
+- Real data: `python -m merlin_quant fetch-data --out FILE` (Yahoo + SEC EDGAR, needs `SEC_USER_AGENT`), then pass
+  `--data FILE --cutoff <last session>`. The Claude cloud container cannot reach those hosts: run it on the user's
+  machine. Without `--data` everything is the SYNTHETIC fixture and must be labelled as such.
+- An owner config at `$MERLIN_QUANT_HOME/config.json` is used automatically; never write or edit thresholds without
+  the user's explicit numbers.
 - Say which data was synthetic or missing. Give times in SGT and New York time.
