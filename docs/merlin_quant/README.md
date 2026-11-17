@@ -78,7 +78,7 @@ XBRL company facts and submissions for quarterly fundamentals and 8-K filings. S
 name and email (`--sec-user-agent` or `SEC_USER_AGENT`). It keeps the point-in-time rules: each quarter is the value
 first reported, dated by the filing that first reported it (restatements never rewrite history), cash-flow quarters are
 de-cumulated from year-to-date figures, a Q4 from the 10-K is dated by the 10-K, 8-Ks carry their SEC acceptance time
-and an unfinished session is dropped. Re-running into the same file keeps the headlines already collected, so run it
+and an unfinished session is dropped. The file records when it was downloaded (`fetched_at`, UTC), so anyone can check that its last session was complete. Re-running into the same file keeps the headlines already collected, so run it
 after each close to build a news history (Yahoo only serves recent items). Dividends are credited on the ex-date
 because Yahoo has no pay date. Symbols default to the config universe; others are fetched but cannot be traded until
 added to the config.
