@@ -30,6 +30,7 @@ Global options go before the command: `--home`, `--config` (default: the EXAMPLE
 
 | Task | Command |
 |---|---|
+| Build a real-data file (Yahoo + SEC EDGAR) | `SEC_USER_AGENT="Your Name you@example.com" $PY -m merlin_quant fetch-data --out ~/merlin-quant-paper/data.json` |
 | Create the paper portfolio | `$PY -m merlin_quant init` |
 | Research an instrument (all stages + proposal) | `$PY -m merlin_quant --runtime claude_cli research AAPL` |
 | Run Merlin only | `$PY -m merlin_quant --runtime claude_cli merlin AAPL` |
@@ -70,9 +71,32 @@ $PY -m merlin_quant --home $H portfolio --as-of 2026-11-13
 | `anthropic_api` | `ANTHROPIC_API_KEY` or `MERLIN_QUANT_ANTHROPIC_API_KEY` | Anthropic SDK |
 
 Data: `synthetic` (default, deterministic, labelled synthetic everywhere) or a `MarketData` JSON file (`--data`).
-No live market-data adapter is enabled: from the Claude cloud container Yahoo, SEC EDGAR, Stooq and Alpha Vantage
-are blocked by the network policy. On a machine with access, build a `MarketData` file from your provider and pass
-`--data`. No paid data service is used or required.
+
+`fetch-data` builds that file from free public sources, no key and no paid service: Yahoo Finance chart JSON for daily
+bars, splits and dividends (turned back into raw bars plus split actions), Yahoo search for headlines, and SEC EDGAR
+XBRL company facts and submissions for quarterly fundamentals and 8-K filings. SEC asks for a User-Agent with your
+name and email (`--sec-user-agent` or `SEC_USER_AGENT`). It keeps the point-in-time rules: each quarter is the value
+first reported, dated by the filing that first reported it (restatements never rewrite history), cash-flow quarters are
+de-cumulated from year-to-date figures, a Q4 from the 10-K is dated by the 10-K, 8-Ks carry their SEC acceptance time
+and an unfinished session is dropped. Re-running into the same file keeps the headlines already collected, so run it
+after each close to build a news history (Yahoo only serves recent items). Dividends are credited on the ex-date
+because Yahoo has no pay date. Symbols default to the config universe; others are fetched but cannot be traded until
+added to the config.
+
+The Claude cloud container cannot reach Yahoo or SEC (network policy), so run `fetch-data` on your own machine:
+
+```bash
+export MERLIN_QUANT_HOME=~/merlin-quant-paper SEC_USER_AGENT="Your Name you@example.com"
+$PY -m merlin_quant fetch-data --out $MERLIN_QUANT_HOME/data.json      # prints the --cutoff to use
+$PY -m merlin_quant --data $MERLIN_QUANT_HOME/data.json --cutoff <LAST_SESSION> --runtime claude_cli propose AAPL
+```
+
+## Owner config
+
+Copy `config/merlin_quant/portfolio.example.json` to `$MERLIN_QUANT_HOME/config.json` and set your own universe,
+sectors and thresholds. The CLI uses that file automatically (an explicit `--config` still wins) and the ledger
+records a `CONFIG` event whenever the config changes. Leave `config_status` as `EXAMPLE` until you have chosen the
+numbers yourself; only `OWNER_CONFIGURED` can ever enable `PAPER_AUTO`.
 
 ## Modes
 
@@ -82,5 +106,6 @@ are blocked by the network policy. On a machine with access, build a `MarketData
 
 ## Not production-ready
 
-Cloud containers are ephemeral: keep `MERLIN_QUANT_HOME` on durable storage. Synthetic results say nothing about
+Cloud containers are ephemeral: keep `MERLIN_QUANT_HOME` on durable storage. `init` warns when the home is a
+temporary folder or the run is inside a Claude cloud container. Synthetic results say nothing about
 real performance.

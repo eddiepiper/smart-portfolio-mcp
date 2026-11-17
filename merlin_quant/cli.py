@@ -21,6 +21,26 @@ from merlin_quant.data import MarketData, synthetic_fixture
 from merlin_quant.engine import EngineError
 
 DEFAULT_HOME = os.environ.get("MERLIN_QUANT_HOME", "var/merlin_quant")
+EPHEMERAL_PREFIXES = ("/tmp/", "/var/tmp/", "/private/tmp/")
+
+
+def durability_warning(home: str | Path) -> str | None:
+    """A warning when the ledger would live somewhere that does not survive the session."""
+    p = str(Path(home).expanduser().resolve()) + "/"
+    if p.startswith(EPHEMERAL_PREFIXES):
+        return f"{home} is a temporary folder: the paper ledger will be lost. Set MERLIN_QUANT_HOME to a durable folder."
+    if os.environ.get("CLAUDE_CODE_REMOTE") == "true":
+        return (f"this is a Claude cloud container, which is deleted when the session ends: the ledger at {home} "
+                "will be lost. Run the paper portfolio on your own machine (MERLIN_QUANT_HOME=~/merlin-quant-paper).")
+    return None
+
+
+def _config_path(args):
+    """--config, else an owner config kept next to the ledger ($HOME/config.json), else the EXAMPLE config."""
+    if args.config:
+        return args.config
+    owner = Path(args.home) / "config.json"
+    return owner if owner.exists() else None
 
 
 def _md(args) -> MarketData:
@@ -31,7 +51,7 @@ def _md(args) -> MarketData:
 
 def _team(args):
     from merlin_quant.workflow import Team  # heavy import only when needed
-    cfg = load_config(args.config)
+    cfg = load_config(_config_path(args))
     return Team(args.home, cfg, _md(args), runtime_override=args.runtime)
 
 
@@ -51,7 +71,8 @@ def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="merlin_quant", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--home", default=DEFAULT_HOME)
-    ap.add_argument("--config", default=None, help="portfolio config JSON (default: the EXAMPLE config)")
+    ap.add_argument("--config", default=None,
+                    help="portfolio config JSON (default: HOME/config.json if present, else the EXAMPLE config)")
     ap.add_argument("--data", default="synthetic", help="'synthetic' or a MarketData JSON file")
     ap.add_argument("--runtime", choices=["scripted", "claude_cli", "anthropic_api"], default=None,
                     help="override every lead's LLM runtime")
@@ -76,12 +97,38 @@ def main(argv=None) -> int:
     sp = sub.add_parser("mode"); sp.add_argument("mode", choices=[m.value for m in Mode])
     sp.add_argument("--validation-passed", action="store_true")
     sub.add_parser("verify", help="verify the ledger hash chain and reconcile it with the broker book")
+    sp = sub.add_parser("fetch-data", help="build a MarketData file from Yahoo + SEC EDGAR (needs internet access)")
+    sp.add_argument("symbols", nargs="*", help="default: the config universe")
+    sp.add_argument("--out", required=True, help="MarketData JSON to write (existing headlines are kept)")
+    sp.add_argument("--start", default="2025-01-02", help="first session (calendar covers 2025-2027)")
+    sp.add_argument("--end", default=None)
+    sp.add_argument("--sec-user-agent", default=os.environ.get("SEC_USER_AGENT"),
+                    help="'Your Name you@example.com' (SEC requires it; or set SEC_USER_AGENT)")
     args = ap.parse_args(argv)
 
     try:
+        if args.cmd == "fetch-data":
+            from merlin_quant.live_data import Http, build_market_data
+            cfg = load_config(_config_path(args))
+            syms = [x.upper() for x in args.symbols] or list(cfg.portfolio.universe)
+            missing = [x for x in syms if x not in cfg.portfolio.universe]
+            if missing:
+                print(f"NOTE: {', '.join(missing)} not in the config universe; add them (and their sectors) to "
+                      "trade them.", file=sys.stderr)
+            out = Path(args.out).expanduser()
+            prev = MarketData.load(out) if out.exists() else None
+            md = build_market_data(syms, cfg.portfolio.benchmark, date.fromisoformat(args.start),
+                                   date.fromisoformat(args.end) if args.end else None,
+                                   http=Http(args.sec_user_agent), sectors=cfg.portfolio.sectors, previous=prev,
+                                   log=lambda m: print(m, file=sys.stderr))
+            out.parent.mkdir(parents=True, exist_ok=True)
+            md.save(out)
+            last = min(b[-1]["date"] for b in md.bars.values())
+            print(f"wrote {out} ({md.source_name}); last complete session {last}. Use: --data {out} --cutoff {last}")
+            return 0
         if args.cmd == "backtest":
             from merlin_quant.backtest import run_backtest
-            res = run_backtest(_md(args), load_config(args.config), date.fromisoformat(args.start),
+            res = run_backtest(_md(args), load_config(_config_path(args)), date.fromisoformat(args.start),
                                date.fromisoformat(args.end), args.every)
             out = Path(args.home) / "backtests" / f"backtest-{args.start}-{args.end}-{args.every}.json"
             out.parent.mkdir(parents=True, exist_ok=True)
@@ -93,6 +140,9 @@ def main(argv=None) -> int:
         team = _team(args)
         eng = team.engine
         if args.cmd == "init":
+            warn = durability_warning(args.home)
+            if warn:
+                print("WARNING:", warn, file=sys.stderr)
             eng.init()
             print(f"initialised paper portfolio at {eng.home} ({team.cfg.portfolio.initial_capital:,.0f} "
                   f"{team.cfg.portfolio.base_currency}, mode {team.cfg.mode.value}, config {team.cfg.version}, "
