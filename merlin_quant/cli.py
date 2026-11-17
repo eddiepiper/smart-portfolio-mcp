@@ -124,7 +124,8 @@ def main(argv=None) -> int:
             out.parent.mkdir(parents=True, exist_ok=True)
             md.save(out)
             last = min(b[-1]["date"] for b in md.bars.values())
-            print(f"wrote {out} ({md.source_name}); last complete session {last}. Use: --data {out} --cutoff {last}")
+            print(f"wrote {out} ({md.source_name}); downloaded {fmt_times(datetime.fromisoformat(md.fetched_at))}; "
+                  f"last complete session {last}. Use: --data {out} --cutoff {last}")
             return 0
         if args.cmd == "backtest":
             from merlin_quant.backtest import run_backtest

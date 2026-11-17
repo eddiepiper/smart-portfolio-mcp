@@ -400,4 +400,5 @@ def build_market_data(symbols: list[str], benchmark: str, start: date, end: date
             f"{len(news[sym])} news items")
     news[benchmark] = []
     return MarketData(source_name=SOURCE_NAME, source_kind="market_data", currency="USD", bars=bars,
-                      actions=actions, filings=filings, news=news, profiles=profiles, halts={})
+                      actions=actions, filings=filings, news=news, profiles=profiles, halts={},
+                      fetched_at=now.astimezone(timezone.utc).isoformat(timespec="seconds"))

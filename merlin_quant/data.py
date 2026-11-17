@@ -55,6 +55,7 @@ class MarketData:
     profiles: dict[str, dict] = field(default_factory=dict)
     halts: dict[str, list[str]] = field(default_factory=dict)
     unavailable: bool = False
+    fetched_at: str = ""  # when a live dataset was downloaded (ISO 8601 UTC); empty for fixtures
 
     # -------------------------------------------------------------- access
     def _require(self):

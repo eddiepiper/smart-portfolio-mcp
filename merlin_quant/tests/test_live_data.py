@@ -153,6 +153,7 @@ def test_build_filings_rows_match_marketdata_units():
 def test_build_market_data_end_to_end_and_news_is_point_in_time(tmp_path):
     md = build_market_data(["TST"], "SPY", date(2025, 1, 2), http=FakeHttp(), now=NOW, log=lambda m: None)
     assert md.source_kind == "market_data" and "SYNTHETIC" not in md.source_name.upper()
+    assert md.fetched_at == "2026-11-14T01:00:00+00:00"              # NOW (20:00 ET) in UTC
     heads = [n["headline"] for n in md.news["TST"]]
     assert "Test Co beats" in heads and "Unrelated" not in heads
     assert any(h.startswith("SEC 8-K filed: 2.02 results of operations") for h in heads)
@@ -200,6 +201,16 @@ def test_fetch_data_cli_writes_a_loadable_file(tmp_path, monkeypatch):
     assert main(["--config", str(cfg), "fetch-data", "--out", str(out)]) == 0
     md = MarketData.load(out)
     assert set(md.bars) == {"TST", "SPY"} and md.profiles["TST"]["sector"] == "Hardware"
+    assert md.fetched_at.startswith("2026-11-14T01:00")
+
+
+def test_old_data_files_without_a_download_stamp_still_load(tmp_path):
+    import json
+    md = build_market_data(["TST"], "SPY", date(2025, 1, 2), http=FakeHttp(), now=NOW, log=lambda m: None)
+    d = dict(md.__dict__); d.pop("fetched_at")
+    (tmp_path / "old.json").write_text(json.dumps(d))
+    old = MarketData.load(tmp_path / "old.json")
+    assert old.fetched_at == "" and old.digest() == md.digest()
 
 
 def test_durability_warning(tmp_path, monkeypatch):
