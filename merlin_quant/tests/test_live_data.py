@@ -145,6 +145,9 @@ def test_build_filings_rows_match_marketdata_units():
     assert q2["revenue"] == 11.0 and q2["fcf"] == pytest.approx(5 * 0.75) and q2["debt"] == 10.0
     assert q2["diluted_shares"] == 1.0 and q2["units"] == "USD bn; shares bn"
     assert all(r["filed"] > r["period_end"] for r in rows)
+    assert notes == [] and all(r["notes"] == [] for r in rows)
+    old, _ = build_filings(companyfacts(), max_quarters=2)
+    assert [r["period_end"] for r in old] == ["2026-06-30", "2026-09-30"]
 
 
 def test_build_market_data_end_to_end_and_news_is_point_in_time(tmp_path):

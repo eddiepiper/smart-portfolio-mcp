@@ -325,11 +325,10 @@ def build_filings(facts: dict, max_quarters: int = 12) -> tuple[list[dict], list
         else:
             continue
         capex = flow["capex"].get(pe, (0.0, ""))[0]
-        if pe not in flow["capex"]:
-            notes.append(f"{pe}: no capex tag, FCF = operating cash flow")
+        row_notes = [] if pe in flow["capex"] else ["no capex tag, FCF = operating cash flow"]
         debt_vals = [p[pe] for p in debt_parts if pe in p]
         if not debt_vals:
-            notes.append(f"{pe}: no debt tag reported, debt = 0")
+            row_notes.append("no debt tag reported, debt = 0")
         filed = max([filed] + [flow[k][pe][1] for k in need])
         rows.append(dict(period_end=pe, filed=filed, revenue=round(rev / BN, 4),
                          gross_profit=round(gp / BN, 4),
@@ -338,8 +337,11 @@ def build_filings(facts: dict, max_quarters: int = 12) -> tuple[list[dict], list
                          fcf=round((flow["cfo"][pe][0] - capex) / BN, 4),
                          diluted_shares=round(shares[pe] / BN, 6), cash=round(cash[pe] / BN, 4),
                          debt=round(sum(debt_vals) / BN, 4), units="USD bn; shares bn",
-                         source="sec_xbrl_first_reported"))
-    return rows[-max_quarters:], notes
+                         source="sec_xbrl_first_reported", notes=row_notes))
+    rows = rows[-max_quarters:]
+    for r in rows:  # report fallbacks only for the quarters actually kept
+        notes += [f"{r['period_end']}: {n}" for n in r["notes"]]
+    return rows, notes
 
 
 # ---------------------------------------------------------------- assembly
@@ -383,7 +385,7 @@ def build_market_data(symbols: list[str], benchmark: str, start: date, end: date
         if len(rows) < 8:
             log(f"{sym}: WARNING only {len(rows)} complete quarters from SEC XBRL (Merlin needs 4, Quant uses 8)")
         filings[sym] = rows
-        for n in notes[-3:]:
+        for n in notes:
             log(f"{sym}: note {n}")
         items = eight_k_news(sub, start)
         try:
