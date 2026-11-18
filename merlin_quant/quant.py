@@ -270,7 +270,8 @@ def run_quant(view: PointInTimeView, symbol: str, benchmark: str, quick_rt: Runt
 
 # ------------------------------------------------------------------ Stage B challenge
 
-def challenge(merlin: MerlinReport, quant: QuantReport, rt: Runtime) -> ChallengeReport:
+def challenge(merlin: MerlinReport, quant: QuantReport, rt: Runtime,
+              lessons: tuple[str, str] = ("", "none")) -> ChallengeReport:
     ind = quant.indicators
     ch: list[Challenge] = []
     base = next(s for s in merlin.scenarios if s.name == "base")
@@ -354,7 +355,8 @@ def challenge(merlin: MerlinReport, quant: QuantReport, rt: Runtime) -> Challeng
                "deterministic_challenges": [c.model_dump() for c in ch], "verdict": verdict.value}
     before = rt.meter.calls
     r = rt.complete((AGENT_DIR / "quant_challenge.md").read_text(),
-                    "CHALLENGE INPUTS:\n```json\n" + json.dumps(payload, indent=1, default=str) + "\n```")
+                    "CHALLENGE INPUTS:\n```json\n" + json.dumps(payload, indent=1, default=str) + "\n```"
+                    + ("\n\n" + lessons[0] if lessons[0] else ""))
     try:
         reasoning = extract_json(r.text).get("reasoning", r.text)
     except ValueError:
@@ -367,7 +369,8 @@ def challenge(merlin: MerlinReport, quant: QuantReport, rt: Runtime) -> Challeng
                     failed_calls=rt.meter.failed, input_tokens=r.input_tokens, output_tokens=r.output_tokens,
                     cost_usd=r.cost_usd, wall_seconds=round(r.seconds, 2), context_id=r.context_id,
                     inputs_digest=hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode()).hexdigest(),
-                    notes=["verdict by fixed rules over the listed challenges; reasoning by the runtime"]))
+                    notes=["verdict by fixed rules over the listed challenges; reasoning by the runtime",
+                           f"lessons_version={lessons[1]}"]))
 
 
 # ------------------------------------------------------------------ scripted test doubles
