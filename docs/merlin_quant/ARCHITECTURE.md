@@ -55,7 +55,7 @@ ai-hedge-fund's paper stack was evaluated:
 | Component | Verdict |
 |---|---|
 | `PaperBroker` / `SimBroker` | **Reused.** Deterministic complete fills, persisted atomically, a second book for reconciliation. |
-| `TradingCosts` | **Reused.** Half-spread + square-root-law impact from ADV and volatility; a per-order minimum commission is added by subclass (`engine.PaperCosts`). |
+| `TradingCosts` | **Reused.** Half-spread + square-root-law impact from ADV and volatility; the broker's commission schedule (percentage of value + per share, with a minimum per order, each side) is added by subclass (`engine.PaperCosts`); SimBroker is patched to pass the fill price to `commission()`. |
 | `paper/ledger.py` (session-chained ledger) | **Design reused, code not.** It is tied to aihf's `FundState`/`SessionRecord` session pipeline (one record per fund session). Our decisions are per proposal, so the same idea (hash chain, state rebuilt by folding, kill switch, broker-vs-ledger reconciliation) is implemented in ~200 lines in `ledger.py`. |
 | `risk/limits.py`, `risk/exposures.py` | Not reused: long/short gross/net/beta limits built on aihf's data client. The spec's checks (cash, duplicates, freshness, calendar, halts, drawdown...) are a different set; `risk.py` implements them once. |
 | backtester / scorecard | Not reused: bound to aihf's signal pipeline. `backtest.py` reuses `SimBroker` + `TradingCosts` for its fills. |

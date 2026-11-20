@@ -216,6 +216,12 @@ class Team:
             f"## Proposal `{p.proposal_id}`: {p.action.value} {p.quantity} @ ref {p.reference_price} "
             f"(target weight {p.target_weight:.0%})", j.rationale,
         ]
+        if p.estimated_costs:
+            e = p.estimated_costs
+            lines.append(f"Estimated broker fees, {self.engine.costs.describe()}: {e['commission_one_side']:,.2f} to buy "
+                         f"and about the same to sell, {e['commission_round_trip']:,.2f} round trip = "
+                         f"{e['round_trip_fee_pct']:.2%} of the {e['order_value']:,.2f} order. The price must rise "
+                         f"about {e['breakeven_move_pct']:.2%} just to break even.")
         path = self.engine.home / "reports" / f"{q.data_cutoff}-{m.instrument}-{j.assessment_id}.md"
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text("\n".join(lines) + "\n")

@@ -77,6 +77,11 @@ def build_proposal(j: JointAssessment, m: MerlinReport, q: QuantReport, c: Chall
     action, qty = j.proposed_action, 0
     if action == Action.BUY:
         qty = target_qty - held
+        # Fee-aware: the buy's commission comes out of the same budget, so shares + commission stay within the
+        # target weight's dollars (with a $15 minimum this can be one share fewer on a small order).
+        budget = j.proposed_target_weight * nav - held * price
+        while qty > 0 and qty * price + cfg.costs.commission(qty, price) > budget:
+            qty -= 1
     elif action == Action.REDUCE:
         qty = held - target_qty
     elif action == Action.SELL:
@@ -95,4 +100,5 @@ def build_proposal(j: JointAssessment, m: MerlinReport, q: QuantReport, c: Chall
         risk_considerations=[*j.unresolved_risks[:6]] or ["none recorded"],
         position_context={"held_quantity": float(held), "nav": round(nav, 2), "cash": round(st.cash, 2),
                           "target_quantity": float(target_qty)},
-        eligibility="ELIGIBLE" if not reasons else "NOT_ELIGIBLE", eligibility_reasons=reasons)
+        eligibility="ELIGIBLE" if not reasons else "NOT_ELIGIBLE", eligibility_reasons=reasons,
+        estimated_costs=cfg.costs.fee_estimate(qty, price) if qty > 0 else {})

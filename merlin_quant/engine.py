@@ -5,7 +5,8 @@ Components and ownership:
 - ai-hedge-fund's `PaperBroker` (vendored) produces fills and keeps a second,
   independent book file, reconciled against the ledger on every start.
 - ai-hedge-fund's `TradingCosts` prices half-spread + square-root impact; this
-  module adds a per-order minimum commission (`PaperCosts`).
+  module adds the broker's commission schedule (`PaperCosts`): a percentage of
+  trade value plus any per-share charge, with a minimum per order, each side.
 - TradingAgents keeps no portfolio here: it only receives a read-only
   `PortfolioContext` built from the ledger (see quant.py).
 
@@ -26,7 +27,7 @@ from datetime import date, datetime, timezone
 from pathlib import Path
 
 from merlin_quant.calendar import is_trading_day, next_trading_day
-from merlin_quant.config import Config
+from merlin_quant.config import Config, commission_for
 from merlin_quant.contracts import (Action, ExecutionRecord, Mode, PortfolioSnapshot, PositionView,
                                     RiskGateResult, TradeProposal, stable_id)
 from merlin_quant.data import MarketData
@@ -41,15 +42,26 @@ class EngineError(RuntimeError):
 
 
 class PaperCosts(TradingCosts):
-    """ai-hedge-fund's cost model plus a minimum commission per order."""
+    """ai-hedge-fund's cost model with the broker's commission schedule:
+    max(per-share x shares + rate x trade value, minimum), charged on every buy and every sell."""
     min_commission: float = 0.0
+    commission_rate: float = 0.0
 
-    def commission(self, quantity: int) -> float:
-        return max(super().commission(quantity), self.min_commission)
+    def commission(self, quantity: int, price: float = 0.0) -> float:
+        return commission_for(quantity, price, per_share=self.commission_per_share, rate=self.commission_rate,
+                              minimum=self.min_commission)
+
+    def describe(self) -> str:
+        parts = []
+        if self.commission_rate:
+            parts.append(f"{self.commission_rate:.4%} of value")
+        if self.commission_per_share:
+            parts.append(f"{self.commission_per_share}/sh")
+        return f"commission max({' + '.join(parts) or '0'}, min {self.min_commission:g}) per side"
 
 
 def costs_from(cfg: Config) -> PaperCosts:
-    return PaperCosts(**cfg.costs.model_dump())
+    return PaperCosts(**cfg.costs.model_dump(exclude={"basis"}))
 
 
 class RecordStore:
@@ -188,6 +200,7 @@ class PaperEngine:
                                           mark=px, mark_date=d, market_value=mv,
                                           unrealized_pnl=None if mv is None else round(mv - h.cost, 2), weight=None))
         nav = st.cash + mv_total
+        exit_fees = sum(self.costs.commission(p.quantity, p.mark) for p in positions if p.mark is not None)
         for p in positions:
             p.weight = None if p.market_value is None else round(p.market_value / nav, 4)
         return PortfolioSnapshot(
@@ -195,7 +208,8 @@ class PaperEngine:
             nav=round(nav, 2), realized_pnl=round(st.realized_pnl, 2), unrealized_pnl=round(unreal, 2),
             fees_paid=round(st.fees, 2), dividends_received=round(st.dividends, 2),
             gross_exposure=round(mv_total / nav, 4) if nav else 0.0, initial_capital=st.initial_capital,
-            halted=st.halted, mode=Mode(st.mode), ledger_head=self.ledger.head(), stale_marks=stale)
+            halted=st.halted, mode=Mode(st.mode), ledger_head=self.ledger.head(), stale_marks=stale,
+            estimated_exit_fees=round(exit_fees, 2))
 
     def record_nav(self, as_of: date) -> dict:
         snap = self.snapshot(as_of)
@@ -292,7 +306,7 @@ class PaperEngine:
         order = Order(ticker=intent["instrument"], side=intent["side"], quantity=intent["quantity"],
                       price=intent["open_price"], adv=intent.get("adv"), volatility=intent.get("volatility"))
         px = self.costs.fill_price(order.side, order.price, order.participation, order.volatility or 0.0)
-        fee = self.costs.commission(order.quantity)
+        fee = self.costs.commission(order.quantity, px)
         return {"execution_id": intent["execution_id"], "proposal_id": intent["proposal_id"],
                 "instrument": intent["instrument"], "side": intent["side"], "quantity": intent["quantity"],
                 "fill_price": px, "commission": fee, "fill_session": intent["fill_session"],
@@ -332,6 +346,8 @@ class PaperEngine:
         priced = self._price(intent)
         if abs(priced["fill_price"] - fill.price) > 1e-9:
             raise LedgerError("broker fill price differs from the deterministic fill model")
+        # The commission actually charged is stored on the FILL event; the ledger never recomputes old fees, so a
+        # later change to the fee schedule cannot rewrite history.
         self.ledger.append("FILL", f"fill:{exe_id}", priced)
         self.reconcile()
 
@@ -345,8 +361,7 @@ class PaperEngine:
             risk_result_id=intent["risk_result_id"], instrument=intent["instrument"], side=side, quantity=q,
             reference_price=reference_price, fill_session=date.fromisoformat(intent["fill_session"]),
             fill_basis=f"{intent['fill_session']} session open ({intent['open_price']}) + {self.costs.spread_bps} bps "
-                       f"half-spread + square-root impact; commission max({self.costs.commission_per_share}/sh, "
-                       f"{self.costs.min_commission})",
+                       f"half-spread + square-root impact; {self.costs.describe()}",
             fill_price=round(px, 6), commission=round(fee, 4),
             slippage_cost=round(abs(px - intent["open_price"]) * q, 4), gross_value=round(gross, 2),
             net_cash_change=round(-(gross + fee) if side == "buy" else gross - fee, 2))

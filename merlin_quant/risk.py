@@ -92,14 +92,29 @@ def evaluate(proposal: TradeProposal, st: State, cfg: Config, md: MarketData, *,
     held = st.holdings.get(sym).quantity if st.holdings.get(sym) else 0
     px = proposal.reference_price
     notional = proposal.quantity * px
-    est_fee = max(proposal.quantity * cfg.costs.commission_per_share, cfg.costs.min_commission)
-    est_cost = notional * (1 + cfg.costs.spread_bps / 10_000) + est_fee
+    est_px = px * (1 + cfg.costs.spread_bps / 10_000)
+    est_fee = cfg.costs.commission(proposal.quantity, est_px)
+    est_cost = proposal.quantity * est_px + est_fee
 
     # 13 order size
     size_ok = (proposal.quantity > 0 and proposal.quantity <= r.max_order_quantity
                and notional <= r.max_order_value and notional >= r.min_order_value) if trade else False
     check("order_size_valid", size_ok, f"{proposal.quantity} sh x {px} = {notional:,.2f}; limits qty<="
           f"{r.max_order_quantity}, {r.min_order_value:,.0f}<=value<={r.max_order_value:,.0f}")
+
+    # 13b commission drag: what the broker's fee schedule takes from this trade, buy and sell
+    if trade and proposal.quantity > 0:
+        fe = cfg.costs.fee_estimate(proposal.quantity, px)
+        lim = r.max_round_trip_fee_pct
+        drag = (f"commission {fe['commission_one_side']:,.2f} each way ({fe['commission_round_trip']:,.2f} round trip "
+                f"= {fe['round_trip_fee_pct']:.2%} of {fe['order_value']:,.2f}); price must rise "
+                f"{fe['breakeven_move_pct']:.2%} to break even")
+        if act != Action.BUY:
+            check("commission_drag", True, drag + "; exits are never blocked on fees")
+        elif lim is None:
+            check("commission_drag", True, drag + "; no limit set (max_round_trip_fee_pct)")
+        else:
+            check("commission_drag", fe["round_trip_fee_pct"] <= lim + 1e-12, drag + f"; limit {lim:.2%}")
 
     # 3 existing positions
     if act == Action.BUY:
@@ -114,7 +129,7 @@ def evaluate(proposal: TradeProposal, st: State, cfg: Config, md: MarketData, *,
     # 2 cash
     if act == Action.BUY:
         avail = st.cash - r.cash_buffer_pct * nav
-        check("available_cash", est_cost <= avail, f"needs {est_cost:,.2f}; available after "
+        check("available_cash", est_cost <= avail, f"needs {est_cost:,.2f} incl. commission {est_fee:,.2f}; available after "
               f"{r.cash_buffer_pct:.0%} buffer {avail:,.2f}")
     else:
         check("available_cash", True, "sell/reduce releases cash")
