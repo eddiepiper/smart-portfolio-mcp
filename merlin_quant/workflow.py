@@ -32,6 +32,7 @@ from merlin_quant import calls as call_log
 from merlin_quant import guards
 from merlin_quant.merlin import FSI_PLUGINS, run_merlin, scripted_merlin
 from merlin_quant.quant import challenge, run_quant, scripted_challenge, scripted_ta_responder
+from merlin_quant import lessons as lessons_loop
 from merlin_quant import risk as risk_gate
 from merlin_quant.runtime import ScriptedRuntime, make_runtime
 
@@ -84,7 +85,7 @@ class Team:
 
         def do_merlin():
             return run_merlin(view, symbol, self.cfg.portfolio.universe, cutoff, self._merlin_rt(view, symbol),
-                              overrides=merlin_overrides)
+                              overrides=merlin_overrides, lessons=lessons_loop.prompt_block(self.engine.home, "merlin"))
 
         def do_quant():
             q, d, qm, dm = self._quant_rts(view, symbol)
@@ -113,7 +114,7 @@ class Team:
     def stage_b(self, m: MerlinReport, q: QuantReport) -> ChallengeReport:
         spec = self._spec("challenge")
         rt = make_runtime(spec, responder=scripted_challenge)
-        c = challenge(m, q, rt)
+        c = challenge(m, q, rt, lessons=lessons_loop.prompt_block(self.engine.home, "challenge"))
         self.engine.records.put("challenge", c.report_id, c)
         self.engine.ledger.append("RESEARCH", f"research:{c.report_id}", {"record": "challenge", "id": c.report_id,
                                   "verdict": c.verdict.value})

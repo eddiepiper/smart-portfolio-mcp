@@ -67,6 +67,44 @@ def _print(obj):
     print(json.dumps(obj, indent=2, default=str))
 
 
+def _lessons(args) -> int:
+    from merlin_quant import lessons as L
+    a = args.action
+    try:
+        if a == "propose":
+            md = json.loads(Path(args.data).expanduser().read_text())
+            bench = load_config(_config_path(args)).portfolio.benchmark
+            res = L.propose(args.home, L.read_runs(args.runs or Path(args.home) / "runs.csv"), md, args.symbol, bench)
+            print(res["text"])
+            print(f"new proposals: {', '.join(res['new']) or 'none'}; active lesson set {res['version']}; "
+                  f"written to {res['report']}")
+        elif a == "list":
+            store = L.load(args.home)
+            print(f"enabled={store.get('enabled', True)} active={L.version(store)}")
+            for l in store["lessons"]:
+                print(f"{l['status']:<9} {l['id']}  ({', '.join(l['applies_to'])})  {l['prompt_text'][:90]}")
+        elif a == "show":  # exactly what each lead is told right now
+            for role in L.ROLES:
+                text, v = L.prompt_block(args.home, role)
+                print(f"--- {role} ({v}) ---\n{text or '(no lessons)'}\n")
+        elif a in ("approve", "reject", "retire"):
+            if not args.lesson_id:
+                raise ValueError("give the lesson id")
+            if a == "reject" and not args.reason:
+                raise ValueError("a rejection needs --reason")
+            l = L.set_status(args.home, args.lesson_id, {"approve": "APPROVED", "reject": "REJECTED",
+                                                          "retire": "RETIRED"}[a], args.by, args.reason)
+            print(f"{l['id']} is now {l['status']}; active lesson set {L.version(L.load(args.home))}")
+        else:
+            if not args.by.strip():
+                raise ValueError("switching lessons on/off needs --by")
+            print(f"lessons {a}; active lesson set {L.set_enabled(args.home, a == 'on', args.by)}")
+        return 0
+    except ValueError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+
+
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="merlin_quant", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -114,6 +152,13 @@ def main(argv=None) -> int:
     sp.add_argument("--end", default=None)
     sp.add_argument("--sec-user-agent", default=os.environ.get("SEC_USER_AGENT"),
                     help="'Your Name you@example.com' (SEC requires it; or set SEC_USER_AGENT)")
+    sp = sub.add_parser("lessons", help="lessons loop: propose from graded runs; only approved lessons reach prompts")
+    sp.add_argument("action", choices=["propose", "list", "show", "approve", "reject", "retire", "on", "off"])
+    sp.add_argument("lesson_id", nargs="?")
+    sp.add_argument("--by", default="")
+    sp.add_argument("--reason", default="")
+    sp.add_argument("--runs", default=None, help="assessment log CSV (default HOME/runs.csv)")
+    sp.add_argument("--symbol", default="NVDA")
     args = ap.parse_args(argv)
 
     try:
@@ -137,6 +182,8 @@ def main(argv=None) -> int:
             print(f"wrote {out} ({md.source_name}); downloaded {fmt_times(datetime.fromisoformat(md.fetched_at))}; "
                   f"last complete session {last}. Use: --data {out} --cutoff {last}")
             return 0
+        if args.cmd == "lessons":
+            return _lessons(args)
         if args.cmd == "backtest":
             from merlin_quant.backtest import run_backtest
             res = run_backtest(_md(args), load_config(_config_path(args)), date.fromisoformat(args.start),

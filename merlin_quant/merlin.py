@@ -153,11 +153,13 @@ def build_inputs(view: PointInTimeView, symbol: str, universe: list[str], resear
 
 
 def run_merlin(view: PointInTimeView, symbol: str, universe: list[str], research_date: date, rt: Runtime,
-               overrides: dict | None = None) -> MerlinReport:
+               overrides: dict | None = None, lessons: tuple[str, str] = ("", "none")) -> MerlinReport:
     inputs = build_inputs(view, symbol, universe, research_date, overrides)
     payload = json.dumps(inputs, indent=1, default=str)
     prompt = ("Research assignment for Merlin.\n\nVERIFIED INPUTS (the only numbers you may use):\n"
               f"```json\n{payload}\n```\n\nReturn the JSON object described in your instructions.")
+    if lessons[0]:  # owner-approved lessons (merlin_quant.lessons); empty unless the owner approved some
+        prompt += "\n\n" + lessons[0]
     if getattr(rt, "plugin_dirs", None):
         prompt = ("FIRST, load each of these Anthropic financial-services skills with the Skill tool, one call each, "
                   "and follow their method: " + ", ".join(FSI_SKILLS) + ". Then answer.\n\n" + prompt)
@@ -210,7 +212,8 @@ def run_merlin(view: PointInTimeView, symbol: str, universe: list[str], research
                     failed_calls=rt.meter.failed, input_tokens=r.input_tokens, output_tokens=r.output_tokens,
                     cost_usd=r.cost_usd, wall_seconds=round(r.seconds, 2), context_id=r.context_id,
                     inputs_digest=hashlib.sha256(payload.encode()).hexdigest(),
-                    notes=["numbers computed by merlin_quant.merlin; narrative by the runtime"]),
+                    notes=["numbers computed by merlin_quant.merlin; narrative by the runtime",
+                           f"lessons_version={lessons[1]}"]),
     )
 
 
