@@ -27,6 +27,7 @@ from merlin_quant.runtime import Runtime, extract_json
 AGENT_DIR = Path(__file__).parent / "agents"
 FSI_COMMIT = "3e32c2287dcb637c184c01cc0ad82d6af7e9bb0f"
 FSI_PLUGINS = ["vertical-plugins/financial-analysis", "vertical-plugins/equity-research"]
+STALE_CONVICTION_CAP = 0.4
 FSI_SKILLS = ["equity-research:earnings-analysis", "financial-analysis:dcf-model", "financial-analysis:comps-analysis",
               "equity-research:thesis-tracker"]
 
@@ -147,6 +148,7 @@ def build_inputs(view: PointInTimeView, symbol: str, universe: list[str], resear
         "filings_used": [{k: f[k] for k in ("period_end", "filed")} for f in view.filings(symbol)[-8:]],
         "valuation_implied_stance": valuation_stance(val["base"]["upside_pct"], val["bear"]["upside_pct"]).value,
         "assumption_overrides": overrides or {},
+        **({"data_freshness": view.context["data_freshness"]} if view.context.get("data_freshness") else {}),
     }
 
 
@@ -180,6 +182,14 @@ def run_merlin(view: PointInTimeView, symbol: str, universe: list[str], research
     unknowns = list(out.get("unknowns", []))
     if synthetic:
         unknowns.insert(0, "All inputs are SYNTHETIC test fixtures, not real company data.")
+    stance, conviction = Stance(out["stance"]), float(out["conviction"])
+    fresh = inputs.get("data_freshness") or {}
+    if fresh.get("cap_stance") and stance in (Stance.BULLISH, Stance.BEARISH):
+        # Stale fundamentals (merlin_quant.guards): a valuation on last quarter's numbers cannot carry a directional
+        # call, whatever the narrative says. Capped deterministically and said so in the record.
+        unknowns.insert(0, f"Stance capped from {stance.value} to NEUTRAL (conviction <= {STALE_CONVICTION_CAP}): "
+                           + fresh.get("plain", "the SEC numbers are older than the company's latest results."))
+        stance, conviction = Stance.NEUTRAL, min(conviction, STALE_CONVICTION_CAP)
     fm = {k: (round(v, 6) if isinstance(v, float) else v) for k, v in m.items()
           if isinstance(v, (int, float)) or v is None}
     fm["valuation_implied_upside_base"] = round(val["base"]["upside_pct"], 4)
@@ -195,7 +205,7 @@ def run_merlin(view: PointInTimeView, symbol: str, universe: list[str], research
         fair_value_base=round(val["base"]["value_per_share"], 2), thesis=out["thesis"],
         catalysts=list(out.get("catalysts", [])), material_risks=list(out.get("material_risks", [])),
         sources=sources, unknowns=unknowns, research_implications=out["research_implications"],
-        stance=Stance(out["stance"]), conviction=float(out["conviction"]), fsi_skills_used=skills,
+        stance=stance, conviction=conviction, fsi_skills_used=skills,
         run=RunMeta(runtime=rt.name, models=sorted(rt.meter.models), model_calls=rt.meter.calls - before,
                     failed_calls=rt.meter.failed, input_tokens=r.input_tokens, output_tokens=r.output_tokens,
                     cost_usd=r.cost_usd, wall_seconds=round(r.seconds, 2), context_id=r.context_id,

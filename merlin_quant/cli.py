@@ -97,6 +97,16 @@ def main(argv=None) -> int:
     sp = sub.add_parser("mode"); sp.add_argument("mode", choices=[m.value for m in Mode])
     sp.add_argument("--validation-passed", action="store_true")
     sub.add_parser("verify", help="verify the ledger hash chain and reconcile it with the broker book")
+    sp = sub.add_parser("calls", help="pre-registered calls: list, grade (writes HOME/calls/scorecard.md), verify")
+    sp.add_argument("action", choices=["list", "grade", "verify"])
+    sp.add_argument("--extra-data", action="append", default=[],
+                    help="more MarketData files to grade from (e.g. a new listing's own data file); repeatable")
+    sp = sub.add_parser("call", help="pre-register an ad-hoc owner call (any ticker in --data; LIMITED mode when "
+                                     "it has no SEC history, e.g. a new IPO)")
+    sp.add_argument("symbol")
+    sp.add_argument("--call", required=True, choices=["BUY", "SELL", "AVOID", "WAIT", "HOLD"])
+    sp.add_argument("--by", required=True)
+    sp.add_argument("--note", default="")
     sp = sub.add_parser("fetch-data", help="build a MarketData file from Yahoo + SEC EDGAR (needs internet access)")
     sp.add_argument("symbols", nargs="*", help="default: the config universe")
     sp.add_argument("--out", required=True, help="MarketData JSON to write (existing headlines are kept)")
@@ -138,6 +148,8 @@ def main(argv=None) -> int:
                    {"trades": len(res["trades"]), "saved": str(out)})
             return 0
 
+        if args.cmd in ("calls", "call"):
+            return _calls(args)
         team = _team(args)
         eng = team.engine
         if args.cmd == "init":
@@ -164,6 +176,18 @@ def main(argv=None) -> int:
                         "eligibility"}),
                     "cost": {"merlin_usd": m.run.cost_usd, "quant_usd": q.run.cost_usd, "challenge_usd": c.run.cost_usd,
                              "model_calls": m.run.model_calls + q.run.model_calls + c.run.model_calls}})
+            gc = p.guard_checks or {}
+            print(f"\nChecks before buying ({gc.get('mode', 'FULL')} mode):")
+            for r in gc.get("results", []):
+                print(f"  {r['name']}: {r['outcome']}. {r['plain']}")
+            if gc.get("held_back"):
+                print(f"  => WAIT: the policy alone said {gc['policy_action']}; held back to {p.action.value}.")
+            if team.last_call:
+                lc = team.last_call
+                print(f"Call pre-registered as {lc['call_id']} ({lc['call']}) at {lc['registered_at_local']}: "
+                      + ("counts toward the scorecard." if lc["official"] else
+                         "a rerun of an earlier call for this data, so it does NOT count." if lc["pre_registered"]
+                         else "registered after the market opened, so it does NOT count."))
         elif args.cmd == "approve":
             _print(team.approve(args.proposal_id, args.by).model_dump(mode="json", include={"proposal_id", "status"}))
         elif args.cmd == "reject":
@@ -209,6 +233,47 @@ def main(argv=None) -> int:
             print(f"ledger OK: {len(evs)} events, head {eng.ledger.head()}; broker book reconciles")
         return 0
     except EngineError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+
+
+def _calls(args) -> int:
+    from merlin_quant import calls as C
+    try:
+        if args.cmd == "call":
+            md, cfg = _md(args), load_config(_config_path(args))
+            sym = args.symbol.upper()
+            cutoff = date.fromisoformat(args.cutoff) if args.cutoff else date.fromisoformat(md.bars[sym][-1]["date"])
+            r = C.register_owner_call(args.home, sym, args.call, args.by, md, cfg, cutoff, note=args.note,
+                                      now=_now(args))
+            print(f"registered {r['call_id']}: {r['call']} {sym} ({r['mode']}) on {r['data_cutoff']} data at "
+                  f"{r['registered_at_local']}; {'counts' if r['official'] else 'does NOT count'} "
+                  f"({'before' if r['pre_registered'] else 'after'} the {r['grade_starts'][:16]} ET open)")
+            for c in r["checks"]:
+                print(f"  {c['name']}: {c['outcome']}. {c['plain']}")
+            for lim in r["limitations"]:
+                print("  NOTE:", lim)
+            return 0
+        if args.action == "verify":
+            print(f"call log OK: {len(C.verify(args.home))} calls, hash chain intact")
+        elif args.action == "list":
+            for r in C.verify(args.home):
+                counted = "counts" if r["official"] else ("late" if not r["pre_registered"] else "rerun")
+                print(f"{r['registered_at_local']}  {r['instrument']:<6} cutoff {r['data_cutoff']}  {r['call']:<9} "
+                      f"{r['mode']:<7} {r['source']:<5} {counted}")
+        else:
+            md = _md(args)
+            for extra in args.extra_data:  # add instruments the main file lacks (never overwrite its bars)
+                em = MarketData.load(Path(extra).expanduser())
+                for s_, b in em.bars.items():
+                    md.bars.setdefault(s_, b)
+            text = C.scorecard(args.home, md, now=_now(args))
+            out = Path(args.home) / "calls" / "scorecard.md"
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(text)
+            print(text + f"\nwritten to {out}")
+        return 0
+    except (C.CallLogError, ValueError, KeyError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
 

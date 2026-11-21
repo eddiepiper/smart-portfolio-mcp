@@ -104,6 +104,43 @@ numbers yourself; only `OWNER_CONFIGURED` can ever enable `PAPER_AUTO`.
 `PAPER_AUTO`: executes eligible proposals after the risk gate; refused until the config is `OWNER_CONFIGURED`
 (the shipped thresholds are labelled EXAMPLE, not approved settings) and `--validation-passed` is given.
 
+## Checks before buying (`merlin_quant/guards.py`)
+
+Three deterministic checks run on every proposal and again in the risk gate at execution. Each can only turn a BUY
+into **WAIT** (the proposal becomes NO_ACTION, or HOLD if already held). Sales and trims are never held back. Every
+proposal carries `guard_checks` (each check's PASS / FLAG / BLOCK with a plain reason, the action the policy alone
+would have taken, and `held_back`). Thresholds live in the config's `guards` block; a config without it gets the
+documented defaults. `"action": "flag"` on a check shows the warning without blocking; `"enabled": false` turns
+every check into a flag.
+
+| Check | Fires when (defaults) | Effect |
+|---|---|---|
+| `data_freshness` | the company filed an earnings 8-K (item 2.02) newer than its latest 10-Q/10-K in our SEC data, or the latest quarter is over 135 days old | Merlin is told and **capped at NEUTRAL, conviction <= 0.4**; BUY -> WAIT until fetch-data brings in the new quarter |
+| `earnings_window` | a report is due within 5 sessions, or happened less than 3 sessions ago | BUY -> WAIT. Report dates: owner list `guards.earnings_dates`, else estimated from the company's 8-K history (same quarter last year + 364 days) |
+| `market_regime` | SPY (or QQQ, when in the data) falls 2.5% in a session, 5% over five sessions, or sits 8% below its 20-session high; or the stock trails SPY by 10% over five sessions | BUY -> WAIT |
+
+Replayed on the November 2026 NVDA data, the 16 Nov and 17 Nov cutoffs (the two BUY 6 calls) are held back by the
+earnings window, the stale-data check and the stock's 11% five-day fall versus SPY; the 20 Nov cutoff by all three.
+The market thresholds fired on about 4% of 2025-26 SPY sessions (March-April 2025, 10 Oct 2025, 5 Jun 2026,
+19-20 Nov 2026). Lesson L-20261119-earnings_window (PR #9, prompt advice only) is now enforced in code here.
+
+## Pre-registered calls (`merlin_quant/calls.py`)
+
+Every `propose`/`research` run writes its call to `HOME/calls/calls.jsonl` (append-only, hash-chained) the moment
+it is made: BUY, SELL, REDUCE, HOLD, NO_ACTION, or WAIT when a check held a BUY back. A call counts only if it was
+written before the open of the first session after its data cutoff, and only the first such call per stock and
+cutoff counts (reruns are kept, labelled, and never scored). Grades run from that open to the close 1, 5 and 10
+sessions later, versus SPY, and are computed on demand, never written back.
+
+    mq calls list                       # every call, counted / rerun / late
+    mq calls grade                      # scorecard -> HOME/calls/scorecard.md
+    mq calls verify                     # hash chain intact?
+    mq --data ant/ant-data.json call ANT --call BUY --by Ed --note "IPO"   # ad-hoc owner call
+
+An owner call on a stock with no SEC financial history (a new listing such as ANT) is registered in **LIMITED**
+mode: no valuation, no Merlin or Quant run, only the price and market checks, and the scorecard keeps it apart.
+Grade it with its own data file: `mq calls grade --extra-data ant/ant-data.json`.
+
 ## Not production-ready
 
 Cloud containers are ephemeral: keep `MERLIN_QUANT_HOME` on durable storage. `init` warns when the home is a

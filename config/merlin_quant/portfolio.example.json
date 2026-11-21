@@ -45,5 +45,17 @@
     "quant": {"runtime": "scripted", "quick_model": "claude-haiku-5-5", "deep_model": "claude-sonnet-5-5", "analysts": ["market", "social", "news"], "max_debate_rounds": 1, "max_risk_rounds": 1},
     "challenge": {"runtime": "scripted", "model": "claude-sonnet-5-5"}
   },
-  "data": {"source": "synthetic_fixture"}
+  "data": {"source": "synthetic_fixture"},
+  "guards": {
+    "note": "Checks before buying (merlin_quant/guards.py). Each can only turn a BUY into WAIT; sales are never blocked. 'block' holds the buy back, 'flag' only shows the warning. stale data: an earnings 8-K (item 2.02) newer than the latest 10-Q/10-K, or a latest quarter older than max_quarter_age_days. Earnings window: no new buys from pre_sessions before to post_sessions after a report (owner dates in earnings_dates win over the estimate from 8-K history). Market: block when SPY (or QQQ, if in the data) falls index_1d_drop in a session, index_5d_drop over five sessions, or sits index_drawdown below its 20-session high, or when the stock trails SPY by stock_vs_market_5d over five sessions.",
+    "enabled": true,
+    "stale_data_action": "block",
+    "max_quarter_age_days": 135,
+    "limited_mode_action": "flag",
+    "earnings_window": {"action": "block", "pre_sessions": 5, "post_sessions": 3, "min_gap_days": 45},
+    "market": {"action": "block", "index_1d_drop": 0.025, "index_5d_drop": 0.05, "index_drawdown": 0.08,
+               "drawdown_lookback_sessions": 20, "extra_indices": ["QQQ"], "stock_vs_market_5d": 0.10,
+               "relative_action": "block"},
+    "earnings_dates": {}
+  }
 }

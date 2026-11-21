@@ -28,6 +28,8 @@ from merlin_quant.contracts import (Action, ChallengeReport, JointAssessment, Me
 from merlin_quant.data import MarketData
 from merlin_quant.decision import build_proposal, synthesize
 from merlin_quant.engine import EngineError, PaperEngine
+from merlin_quant import calls as call_log
+from merlin_quant import guards
 from merlin_quant.merlin import FSI_PLUGINS, run_merlin, scripted_merlin
 from merlin_quant.quant import challenge, run_quant, scripted_challenge, scripted_ta_responder
 from merlin_quant import risk as risk_gate
@@ -43,6 +45,7 @@ class Team:
         self.engine = PaperEngine(home, cfg, md)
         self.override = runtime_override
         self.events: list[str] = []
+        self.last_call: dict | None = None  # the pre-registered call of the latest stage C (merlin_quant.calls)
 
     # ------------------------------------------------------------ runtimes
     def _spec(self, lead: str) -> dict:
@@ -67,8 +70,12 @@ class Team:
 
     # ------------------------------------------------------------ stages
     def stage_a(self, symbol: str, cutoff: date, merlin_overrides: dict | None = None,
-                only: str | None = None) -> tuple[MerlinReport | None, QuantReport | None]:
+                only: str | None = None, now: datetime | None = None) -> tuple[MerlinReport | None, QuantReport | None]:
         view = self.md.view(cutoff)
+        fresh = guards.check_data_freshness(view, symbol, self.cfg.guards, guards.known_by_time(cutoff, now))
+        if fresh.details.get("stale"):  # Merlin is told, and capped at NEUTRAL when the check blocks
+            view.context["data_freshness"] = {**fresh.details, "plain": fresh.plain,
+                                              "cap_stance": fresh.outcome == "BLOCK" and self.cfg.guards.enabled}
         st = self.engine.ledger.state()
         portfolio = {"cash": round(st.cash, 2), "currency": st.base_currency,
                      "positions": [{"ticker": s, "quantity": h.quantity, "average_price": round(h.avg_cost, 4)}
@@ -117,17 +124,30 @@ class Team:
         snap = self.engine.snapshot(q.data_cutoff)
         held_w = next((p.weight or 0.0 for p in snap.positions if p.instrument == m.instrument), 0.0)
         j = synthesize(m, q, c, self.cfg, held_w)
+        gr = guards.evaluate(self.md.view(q.data_cutoff), m.instrument, self.cfg, now=now)
+        would_have = j.proposed_action
+        if j.proposed_action == Action.BUY and gr.blocking:  # checks before buying: the BUY becomes WAIT
+            j = j.model_copy(update={
+                "proposed_action": Action.HOLD if held_w > 0 else Action.NO_ACTION,
+                "proposed_target_weight": round(held_w, 6),
+                "rationale": f"WAIT (the policy alone would BUY): {gr.wait_reason()} Policy: {j.rationale}",
+                "unresolved_risks": [r.plain for r in gr.blocking] + list(j.unresolved_risks)})
         self.engine.records.put("joint", j.assessment_id, j)
         p = build_proposal(j, m, q, c, st, self.md, self.cfg, now=now)
+        p = p.model_copy(update={"guard_checks": {**gr.as_dict(), "policy_action": would_have.value,
+                                                  "held_back": would_have != j.proposed_action}})
+        if p.guard_checks["held_back"]:
+            p.eligibility_reasons.append(gr.wait_reason())
         self.engine.records.put("proposals", p.proposal_id, p)
         self.engine.ledger.append("PROPOSAL", f"proposal:{p.proposal_id}", {"proposal_id": p.proposal_id,
                                   "instrument": p.instrument, "action": p.action.value, "quantity": p.quantity,
                                   "assessment_id": j.assessment_id})
         self._report(m, q, c, j, p)
+        self.last_call = call_log.register_team_call(self.engine.home, m, q, c, p, self.md, self.cfg, now=now)
         return j, p
 
     def research(self, symbol: str, cutoff: date, merlin_overrides: dict | None = None, now=None):
-        m, q = self.stage_a(symbol, cutoff, merlin_overrides)
+        m, q = self.stage_a(symbol, cutoff, merlin_overrides, now=now)
         c = self.stage_b(m, q)
         j, p = self.stage_c(m, q, c, now=now)
         mode = Mode(self.engine.ledger.state().mode)
@@ -201,6 +221,10 @@ class Team:
             f"# {m.instrument}: joint assessment {j.assessment_id}",
             f"Data cutoff {q.data_cutoff} (close: {fmt_times(datetime.combine(q.data_cutoff, datetime.min.time().replace(hour=16), tzinfo=NY))}). "
             f"Source: {self.md.source_name}. PAPER ONLY, research not advice.", "",
+            "## Checks before buying",
+            *[f"- {r['name']}: **{r['outcome']}**. {r['plain']}" for r in p.guard_checks.get("results", [])],
+            *([f"- The policy alone said {p.guard_checks['policy_action']}; held back to {p.action.value} (WAIT)."]
+              if p.guard_checks.get("held_back") else []), "",
             f"## Merlin ({m.stance.value}, conviction {m.conviction:.2f}) `{m.report_id}`",
             f"Fair value (base) {m.fair_value_base} vs price {m.reference_price} on {m.reference_price_date}.",
             *[f"- {s.name}: CAGR {s.revenue_cagr:.1%}, terminal margin {s.terminal_margin:.1%}, WACC {s.wacc:.1%}, "

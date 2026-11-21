@@ -61,6 +61,39 @@ class PolicyCfg(_C):
     rules: str = ""
 
 
+class EarningsWindowCfg(_C):
+    """No new buys from `pre_sessions` sessions before an expected report until `post_sessions` after it."""
+    action: str = Field(default="block", pattern="^(block|flag)$")
+    pre_sessions: int = Field(default=5, ge=0, le=30)
+    post_sessions: int = Field(default=3, ge=0, le=30)
+    min_gap_days: int = Field(default=45, ge=1)  # an estimated next report is at least this long after the last one
+
+
+class MarketCfg(_C):
+    """Market-wide sell-off check. Defaults fired on about 4% of sessions in 2025-26 SPY history
+    (March-April 2025, 10 Oct 2025, 5 Jun 2026, 5/19/20 Nov 2026)."""
+    action: str = Field(default="block", pattern="^(block|flag)$")
+    index_1d_drop: float = Field(default=0.025, gt=0, lt=1)  # an index falls 2.5% or more in one session
+    index_5d_drop: float = Field(default=0.05, gt=0, lt=1)  # ... or 5% or more over five sessions
+    index_drawdown: float = Field(default=0.08, gt=0, lt=1)  # ... or sits 8% or more below its recent high
+    drawdown_lookback_sessions: int = Field(default=20, ge=2)
+    extra_indices: list[str] = Field(default_factory=lambda: ["QQQ"])  # checked when present in the data
+    stock_vs_market_5d: float = Field(default=0.10, gt=0, lt=1)  # stock trails the benchmark by 10%+ in 5 sessions
+    relative_action: str = Field(default="block", pattern="^(block|flag)$")
+
+
+class GuardsCfg(_C):
+    """Checks before buying (merlin_quant.guards). They can only hold a buy back; sales are never blocked."""
+    enabled: bool = True  # False: every guard only flags (nothing blocks, Merlin is not capped)
+    stale_data_action: str = Field(default="block", pattern="^(block|flag)$")
+    max_quarter_age_days: int = Field(default=135, ge=60)  # ~91-day quarter + 45-day 10-Q deadline
+    limited_mode_action: str = Field(default="flag", pattern="^(block|flag)$")  # no SEC history (new listings)
+    earnings_window: EarningsWindowCfg = Field(default_factory=EarningsWindowCfg)
+    market: MarketCfg = Field(default_factory=MarketCfg)
+    earnings_dates: dict[str, list[str]] = Field(default_factory=dict)  # owner-known dates, e.g. {"NVDA": ["2027-02-24"]}
+    note: str = ""
+
+
 class Config(_C):
     notice: str = Field(default="", alias="_notice")
     config_status: str  # EXAMPLE | OWNER_CONFIGURED
@@ -72,6 +105,7 @@ class Config(_C):
     decision_policy: PolicyCfg
     runtimes: dict
     data: dict
+    guards: GuardsCfg = Field(default_factory=GuardsCfg)  # absent in older configs: the documented defaults apply
 
     model_config = ConfigDict(extra="forbid", populate_by_name=True)
 
