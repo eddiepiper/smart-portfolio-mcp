@@ -67,47 +67,6 @@ def _print(obj):
     print(json.dumps(obj, indent=2, default=str))
 
 
-def _calls(args) -> int:
-    from merlin_quant import calls as C
-    try:
-        if args.cmd == "call":
-            md, cfg = _md(args), load_config(_config_path(args))
-            sym = args.symbol.upper()
-            cutoff = date.fromisoformat(args.cutoff) if args.cutoff else date.fromisoformat(md.bars[sym][-1]["date"])
-            r = C.register_owner_call(args.home, sym, args.call, args.by, md, cfg, cutoff, note=args.note,
-                                      now=_now(args))
-            print(f"registered {r['call_id']}: {r['call']} {sym} ({r['mode']}) on {r['data_cutoff']} data at "
-                  f"{r['registered_at_local']}; {'counts' if r['official'] else 'does NOT count'} "
-                  f"({'before' if r['pre_registered'] else 'after'} the {r['grade_starts'][:16]} ET open)")
-            for c in r["checks"]:
-                print(f"  {c['name']}: {c['outcome']}. {c['plain']}")
-            for lim in r["limitations"]:
-                print("  NOTE:", lim)
-            return 0
-        if args.action == "verify":
-            print(f"call log OK: {len(C.verify(args.home))} calls, hash chain intact")
-        elif args.action == "list":
-            for r in C.verify(args.home):
-                counted = "counts" if r["official"] else ("late" if not r["pre_registered"] else "rerun")
-                print(f"{r['registered_at_local']}  {r['instrument']:<6} cutoff {r['data_cutoff']}  {r['call']:<9} "
-                      f"{r['mode']:<7} {r['source']:<5} {counted}")
-        else:
-            md = _md(args)
-            for extra in args.extra_data:  # add instruments the main file lacks (never overwrite its bars)
-                em = MarketData.load(Path(extra).expanduser())
-                for s_, b in em.bars.items():
-                    md.bars.setdefault(s_, b)
-            text = C.scorecard(args.home, md, now=_now(args))
-            out = Path(args.home) / "calls" / "scorecard.md"
-            out.parent.mkdir(parents=True, exist_ok=True)
-            out.write_text(text)
-            print(text + f"\nwritten to {out}")
-        return 0
-    except (C.CallLogError, ValueError, KeyError) as exc:
-        print(f"ERROR: {exc}", file=sys.stderr)
-        return 2
-
-
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(prog="merlin_quant", description=__doc__,
                                  formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -274,6 +233,47 @@ def main(argv=None) -> int:
             print(f"ledger OK: {len(evs)} events, head {eng.ledger.head()}; broker book reconciles")
         return 0
     except EngineError as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 2
+
+
+def _calls(args) -> int:
+    from merlin_quant import calls as C
+    try:
+        if args.cmd == "call":
+            md, cfg = _md(args), load_config(_config_path(args))
+            sym = args.symbol.upper()
+            cutoff = date.fromisoformat(args.cutoff) if args.cutoff else date.fromisoformat(md.bars[sym][-1]["date"])
+            r = C.register_owner_call(args.home, sym, args.call, args.by, md, cfg, cutoff, note=args.note,
+                                      now=_now(args))
+            print(f"registered {r['call_id']}: {r['call']} {sym} ({r['mode']}) on {r['data_cutoff']} data at "
+                  f"{r['registered_at_local']}; {'counts' if r['official'] else 'does NOT count'} "
+                  f"({'before' if r['pre_registered'] else 'after'} the {r['grade_starts'][:16]} ET open)")
+            for c in r["checks"]:
+                print(f"  {c['name']}: {c['outcome']}. {c['plain']}")
+            for lim in r["limitations"]:
+                print("  NOTE:", lim)
+            return 0
+        if args.action == "verify":
+            print(f"call log OK: {len(C.verify(args.home))} calls, hash chain intact")
+        elif args.action == "list":
+            for r in C.verify(args.home):
+                counted = "counts" if r["official"] else ("late" if not r["pre_registered"] else "rerun")
+                print(f"{r['registered_at_local']}  {r['instrument']:<6} cutoff {r['data_cutoff']}  {r['call']:<9} "
+                      f"{r['mode']:<7} {r['source']:<5} {counted}")
+        else:
+            md = _md(args)
+            for extra in args.extra_data:  # add instruments the main file lacks (never overwrite its bars)
+                em = MarketData.load(Path(extra).expanduser())
+                for s_, b in em.bars.items():
+                    md.bars.setdefault(s_, b)
+            text = C.scorecard(args.home, md, now=_now(args))
+            out = Path(args.home) / "calls" / "scorecard.md"
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(text)
+            print(text + f"\nwritten to {out}")
+        return 0
+    except (C.CallLogError, ValueError, KeyError) as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 2
 
