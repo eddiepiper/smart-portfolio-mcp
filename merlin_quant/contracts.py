@@ -240,6 +240,9 @@ class TradeProposal(Strict):
     reference_price: float = Field(gt=0)
     reference_price_date: date
     reference_price_source: str
+    # Checks before buying (merlin_quant.guards): each guard's PASS/FLAG/BLOCK with a plain reason, the action the
+    # policy alone would have taken, and whether a BUY was held back to WAIT. Empty on older proposals.
+    guard_checks: dict = Field(default_factory=dict)
     thesis: str = Field(min_length=10)
     risk_considerations: list[str] = Field(min_length=1)
     position_context: dict[str, float]

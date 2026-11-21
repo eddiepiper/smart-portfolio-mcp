@@ -102,6 +102,8 @@ class MarketData:
 class PointInTimeView:
     def __init__(self, md: MarketData, cutoff: date):
         self.md, self.cutoff = md, cutoff
+        # Coordinator-attached context for the leads (e.g. guards' data_freshness); never market data itself.
+        self.context: dict = {}
         self._close_ts = datetime.combine(cutoff, datetime.min.time().replace(hour=16), tzinfo=NY)
 
     @property

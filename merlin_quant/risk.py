@@ -24,7 +24,8 @@ from merlin_quant.data import DataUnavailable, MarketData, StaleData
 from merlin_quant.ledger import State
 
 BLOCKING = {"engine_not_halted", "mode_allows_execution", "data_available", "data_freshness",
-            "trading_calendar", "drawdown_threshold", "instrument_not_halted"}
+            "trading_calendar", "drawdown_threshold", "instrument_not_halted",
+            "checks_before_buying"}
 
 
 def evaluate(proposal: TradeProposal, st: State, cfg: Config, md: MarketData, *,
@@ -144,6 +145,17 @@ def evaluate(proposal: TradeProposal, st: State, cfg: Config, md: MarketData, *,
     dd = 1 - nav / peak if peak else 0.0
     check("drawdown_threshold", act != Action.BUY or dd < r.max_drawdown_halt,
           f"drawdown {dd:.2%} from peak {peak:,.2f}; new buys stop at {r.max_drawdown_halt:.0%}")
+
+    # 14 checks before buying (merlin_quant.guards), re-run at execution so an older BUY proposal made before a
+    # report, before new results reached the SEC data, or before a sell-off cannot slip through. Buys only.
+    if act == Action.BUY and view is not None:
+        from merlin_quant import guards
+        try:
+            gr = guards.evaluate(view, sym, cfg, now=now)
+            check("checks_before_buying", not gr.blocking, gr.wait_reason() if gr.blocking else
+                  "no blocking check (" + "; ".join(f"{x.name} {x.outcome}" for x in gr.results) + ")")
+        except DataUnavailable as exc:
+            check("checks_before_buying", False, f"could not run the checks: {exc}")
 
     failed = [c for c in checks if not c.passed]
     if not failed:

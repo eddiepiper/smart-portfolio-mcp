@@ -16,6 +16,9 @@ Rules.
 4. State material risks and valuation sensitivities honestly, including the share of value in the terminal value.
 5. Your stance is your own judgement of the fundamental case: BULLISH, NEUTRAL, BEARISH or INSUFFICIENT_EVIDENCE.
    "valuation_implied_stance" is a mechanical reading; you may differ from it if you explain why in the thesis.
+6. If the inputs contain "data_freshness" with "stale": true, the company has published newer results than the
+   SEC numbers you were given. Say so plainly in the thesis and unknowns, treat the valuation as out of date, and
+   do not take a BULLISH or BEARISH stance on it: use NEUTRAL (or INSUFFICIENT_EVIDENCE). The code enforces this.
 
 Output. Reply with ONE JSON object and nothing else:
 {"business_overview": str, "thesis": str, "catalysts": [str], "material_risks": [str], "unknowns": [str],
