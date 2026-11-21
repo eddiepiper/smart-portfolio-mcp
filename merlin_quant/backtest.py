@@ -64,7 +64,7 @@ def run_backtest(md: MarketData, cfg: Config, start: date, end: date, every: int
                 bar = md.execution_bar(o.ticker, d, decision_cutoff=next_prev(d, sessions))
                 o = Order(ticker=o.ticker, side=o.side, quantity=o.quantity, price=bar["open"])
                 fill = broker.place_order(o)
-                fee = broker._costs.commission(o.quantity)
+                fee = broker._costs.commission(o.quantity, fill.price)
                 if o.side == "buy":
                     cost_basis[o.ticker] = cost_basis.get(o.ticker, 0.0) + fill.price * o.quantity + fee
                 else:

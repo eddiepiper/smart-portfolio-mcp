@@ -69,5 +69,7 @@ class TradingCosts(BaseModel):
         """The square-root law, as a fraction of the mark."""
         return self.impact_coefficient * volatility * sqrt(participation)
 
-    def commission(self, quantity: int) -> float:
+    def commission(self, quantity: int, price: float = 0.0) -> float:
+        # merlin_quant patch: *price* (the fill price) is passed so a subclass
+        # can charge a percentage of trade value; this per-share model ignores it.
         return quantity * self.commission_per_share

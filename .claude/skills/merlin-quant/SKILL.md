@@ -26,6 +26,8 @@ Rules:
   machine. Without `--data` everything is the SYNTHETIC fixture and must be labelled as such.
 - An owner config at `$MERLIN_QUANT_HOME/config.json` is used automatically; never write or edit thresholds without
   the user's explicit numbers.
+- Fees: 0.06% of value, minimum USD 15, per side (config `costs`). When showing a proposal or asking for an
+  approval, state the round-trip commission and the break-even move from `estimated_costs` in plain words.
 - Say which data was synthetic or missing. Give times in SGT and New York time.
 - Checks before buying (`guard_checks` on every proposal): when a check holds a BUY back, say "WAIT" and give its
   plain reason (stale SEC data after an earnings release, earnings window, market sell-off). Never approve around it.

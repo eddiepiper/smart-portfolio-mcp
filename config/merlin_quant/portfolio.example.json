@@ -25,14 +25,16 @@
   },
   "costs": {
     "spread_bps": 5.0,
-    "commission_per_share": 0.005,
-    "min_commission": 1.0,
+    "commission_per_share": 0.0,
+    "commission_rate": 0.0006,
+    "min_commission": 15.0,
     "impact_coefficient": 1.0,
-    "min_trade_pct": 0.0
+    "min_trade_pct": 0.0,
+    "basis": "Owner's online staff preferential rate, per side: US 0.06%, min USD 15. Same schedule for SG (0.06%, min SGD 0) and HK (0.06%, min HKD 80); this USD portfolio trades US listings only, so the US row applies."
   },
   "execution": {
     "fill_session": "next_session_open",
-    "note": "A decision made on session D's close fills at the open of the next NYSE session after D, plus half-spread and square-root impact (ai-hedge-fund TradingCosts), plus commission."
+    "note": "A decision made on session D's close fills at the open of the next NYSE session after D, plus half-spread and square-root impact (ai-hedge-fund TradingCosts), plus commission (0.06% of value, minimum USD 15, on every buy and every sell)."
   },
   "decision_policy": {
     "full_target_weight": 0.08,

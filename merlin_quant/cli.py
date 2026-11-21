@@ -220,7 +220,7 @@ def main(argv=None) -> int:
                     q.tradingagents_rating], "challenge": [c.report_id, c.verdict.value],
                     "disagreements": j.disagreements, "proposal": p.model_dump(mode="json", include={
                         "proposal_id", "action", "quantity", "reference_price", "target_weight", "status",
-                        "eligibility"}),
+                        "eligibility", "estimated_costs"}),
                     "cost": {"merlin_usd": m.run.cost_usd, "quant_usd": q.run.cost_usd, "challenge_usd": c.run.cost_usd,
                              "model_calls": m.run.model_calls + q.run.model_calls + c.run.model_calls}})
             gc = p.guard_checks or {}
@@ -236,7 +236,13 @@ def main(argv=None) -> int:
                          "a rerun of an earlier call for this data, so it does NOT count." if lc["pre_registered"]
                          else "registered after the market opened, so it does NOT count."))
         elif args.cmd == "approve":
-            _print(team.approve(args.proposal_id, args.by).model_dump(mode="json", include={"proposal_id", "status"}))
+            p = team.approve(args.proposal_id, args.by)
+            out = p.model_dump(mode="json", include={"proposal_id", "status", "action", "quantity", "instrument"})
+            # Fees at TODAY's schedule, so an approval of an older proposal (made before fees were modelled) still
+            # shows what it will cost; the risk gate re-checks with the same schedule at execution.
+            out["estimated_costs"] = team.cfg.costs.fee_estimate(p.quantity, p.reference_price)
+            out["fee_schedule"] = team.engine.costs.describe()
+            _print(out)
         elif args.cmd == "reject":
             _print(team.reject(args.proposal_id, args.by, args.reason).model_dump(mode="json", include={"proposal_id", "status"}))
         elif args.cmd == "execute":
@@ -265,6 +271,7 @@ def main(argv=None) -> int:
             _print({"kind": "FORWARD_PAPER_TRADING", "nav_points": st.nav_history[-10:],
                     "metrics": series_metrics(navs, bench), "trade_stats": trade_stats(st.closed_trades),
                     "realized_pnl": round(st.realized_pnl, 2), "fees": round(st.fees, 2),
+                    "fee_schedule": eng.costs.describe(),
                     "research_scoring": score_research(props, merl, qnt, team.md, team.cfg.portfolio.benchmark,
                                                        args.horizon, through),
                     "limitations": LIMITATIONS})

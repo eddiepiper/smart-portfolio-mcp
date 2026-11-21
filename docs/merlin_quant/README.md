@@ -98,6 +98,30 @@ sectors and thresholds. The CLI uses that file automatically (an explicit `--con
 records a `CONFIG` event whenever the config changes. Leave `config_status` as `EXAMPLE` until you have chosen the
 numbers yourself; only `OWNER_CONFIGURED` can ever enable `PAPER_AUTO`.
 
+## Fees (broker commission)
+
+Paper fills pay the owner's online staff preferential rate, set in the config's `costs` block:
+
+| Market | Rate per side | Minimum per order |
+|---|---|---|
+| US (this portfolio) | 0.06% (`commission_rate: 0.0006`) | USD 15 (`min_commission: 15`) |
+| SG | 0.06% | SGD 0 |
+| HK | 0.06% | HKD 80 |
+
+Commission = max(0.06% x trade value, minimum), charged on the buy AND on the sell. Below about $25,000 a side the
+USD 15 minimum is what you pay, so a round trip costs $30: 1.9% of a $1,560 order, 3.2% of a ~$940 (6 x NVDA) order.
+
+- Proposals carry `estimated_costs` (commission each way, round trip, round trip as % of the order, and the
+  break-even move including the modelled spread); the report and `propose`/`approve` output show it.
+- Sizing is fee-aware: shares + the buy commission stay within the target weight's dollars.
+- The risk gate's cash check includes the commission, and `commission_drag` reports the round-trip fee on every
+  order. Set `risk.max_round_trip_fee_pct` (e.g. `0.02`) to reject buys where fees eat more than that; unset, it
+  only reports. Sells are never blocked on fees.
+- `portfolio` shows `fees_paid` (already charged) and `estimated_exit_fees` (what selling everything would cost).
+  Realised P&L is net of both commissions; unrealised P&L is net of the buy commission.
+- History is never re-priced: each FILL stores the commission actually charged, and a fee change is recorded as a
+  `CONFIG` event. A config without `commission_rate` keeps its old fees (rate 0).
+
 ## Modes
 
 `PAPER_MANUAL` (default): proposals execute only after `approve`. `RESEARCH_ONLY`: nothing can be approved.

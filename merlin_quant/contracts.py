@@ -248,6 +248,10 @@ class TradeProposal(Strict):
     position_context: dict[str, float]
     eligibility: Literal["ELIGIBLE", "NOT_ELIGIBLE"]
     eligibility_reasons: list[str] = Field(default_factory=list)
+    # Estimated commission at the reference price under the config's fee schedule (order_value,
+    # commission_one_side, commission_round_trip, round_trip_fee_pct, breakeven_move_pct). Empty on proposals
+    # made before fees were modelled; those are left as written.
+    estimated_costs: dict[str, float] = Field(default_factory=dict)
     status: Literal["PROPOSED", "APPROVED", "REJECTED", "EXECUTED", "BLOCKED", "CANCELLED"] = "PROPOSED"
 
     @model_validator(mode="after")
@@ -328,3 +332,6 @@ class PortfolioSnapshot(Strict):
     mode: Mode
     ledger_head: str
     stale_marks: list[str] = Field(default_factory=list)
+    # Commission it would cost to sell every position at its mark under today's fee schedule (an estimate,
+    # not yet paid). unrealized_pnl already includes the commission paid on the buys.
+    estimated_exit_fees: float = 0.0
