@@ -232,3 +232,15 @@ def test_owner_config_next_to_ledger_is_used(tmp_path):
     assert _config_path(A) == tmp_path / "config.json"
     A.config = "x.json"
     assert _config_path(A) == "x.json"
+
+
+def test_prices_only_keeps_an_etf_with_no_sec_filings():
+    from merlin_quant.guards import check_data_freshness
+    from merlin_quant.config import load_config
+    with pytest.raises(FetchError, match="--prices-only"):
+        build_market_data(["ETFX"], "SPY", date(2025, 1, 2), http=FakeHttp(), now=NOW, log=lambda m: None)
+    md = build_market_data(["ETFX"], "SPY", date(2025, 1, 2), http=FakeHttp(), now=NOW, log=lambda m: None,
+                           prices_only=True)
+    assert md.bars["ETFX"] and md.filings["ETFX"] == []
+    r = check_data_freshness(md.view(date(2026, 11, 13)), "ETFX", load_config(None).guards, NOW)
+    assert r.details["limited"] is True

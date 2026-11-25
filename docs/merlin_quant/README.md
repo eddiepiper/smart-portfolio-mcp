@@ -165,6 +165,12 @@ An owner call on a stock with no SEC financial history (a new listing such as AN
 mode: no valuation, no Merlin or Quant run, only the price and market checks, and the scorecard keeps it apart.
 Grade it with its own data file: `mq calls grade --extra-data ant/ant-data.json`.
 
+An ETF or fund (e.g. SPYM) has no SEC filings, so `fetch-data` refuses it unless you add `--prices-only`: then it
+keeps prices and headlines with no financials, and the call runs in LIMITED mode:
+
+    mq fetch-data SPYM SPY --prices-only --out ~/merlin-quant-paper/spym/spym-data.json
+    mq --data ~/merlin-quant-paper/spym/spym-data.json call SPYM --call BUY --by Ed --note "paper idea"
+
 ## Not production-ready
 
 Cloud containers are ephemeral: keep `MERLIN_QUANT_HOME` on durable storage. `init` warns when the home is a

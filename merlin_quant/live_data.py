@@ -356,8 +356,12 @@ def _sec_ciks(http: Http) -> dict[str, tuple[str, str]]:
 
 def build_market_data(symbols: list[str], benchmark: str, start: date, end: date | None = None,
                       http: Http | None = None, now: datetime | None = None, sectors: dict | None = None,
-                      previous: MarketData | None = None, log: Callable[[str], None] = print) -> MarketData:
-    """Fetch everything for *symbols* (fundamentals + news) and *benchmark* (prices only)."""
+                      previous: MarketData | None = None, log: Callable[[str], None] = print,
+                      prices_only: bool = False) -> MarketData:
+    """Fetch everything for *symbols* (fundamentals + news) and *benchmark* (prices only).
+
+    With *prices_only*, a symbol SEC has no filings for (an ETF such as SPYM, a fund, a foreign listing) keeps its
+    prices and headlines with no financials instead of failing; the checks then treat it in LIMITED mode."""
     http = http or Http(os.environ.get("SEC_USER_AGENT"))
     now = now or datetime.now(timezone.utc)
     end = min(end or now.astimezone(NY).date(), COVERED[1])
@@ -376,7 +380,22 @@ def build_market_data(symbols: list[str], benchmark: str, start: date, end: date
         if sym == benchmark:
             continue
         if sym not in ciks:
-            raise FetchError(f"{sym} is not in SEC company_tickers.json: no filings, Merlin cannot value it")
+            if not prices_only:
+                raise FetchError(f"{sym} is not in SEC company_tickers.json: no filings, Merlin cannot value it "
+                                 "(use --prices-only for an ETF or fund: prices and headlines, LIMITED mode)")
+            log(f"{sym}: no SEC filings ({profiles[sym]['instrument_type'] or 'not an SEC filer'}); prices and "
+                "headlines only, LIMITED mode (no valuation, no Merlin or Quant run)")
+            filings[sym] = []
+            items = []
+            try:
+                items += fetch_news(http, sym)
+            except FetchError as exc:
+                log(f"{sym}: headlines unavailable ({exc})")
+            if previous is not None:
+                items += previous.news.get(sym, [])
+            uniq = {(n["published"], n["headline"]): n for n in items}
+            news[sym] = sorted(uniq.values(), key=lambda n: n["published"])
+            continue
         cik, title = ciks[sym]
         sub = http.get_json(SEC_SUBMISSIONS.format(cik=cik))
         profiles[sym].update(name=sub.get("name") or title or profiles[sym]["name"], cik=cik,
