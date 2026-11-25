@@ -150,6 +150,8 @@ def main(argv=None) -> int:
     sp.add_argument("--out", required=True, help="MarketData JSON to write (existing headlines are kept)")
     sp.add_argument("--start", default="2025-01-02", help="first session (calendar covers 2025-2027)")
     sp.add_argument("--end", default=None)
+    sp.add_argument("--prices-only", action="store_true",
+                    help="allow symbols with no SEC filings (ETFs, funds): prices and headlines only, LIMITED mode")
     sp.add_argument("--sec-user-agent", default=os.environ.get("SEC_USER_AGENT"),
                     help="'Your Name you@example.com' (SEC requires it; or set SEC_USER_AGENT)")
     sp = sub.add_parser("lessons", help="lessons loop: propose from graded runs; only approved lessons reach prompts")
@@ -175,7 +177,7 @@ def main(argv=None) -> int:
             md = build_market_data(syms, cfg.portfolio.benchmark, date.fromisoformat(args.start),
                                    date.fromisoformat(args.end) if args.end else None,
                                    http=Http(args.sec_user_agent), sectors=cfg.portfolio.sectors, previous=prev,
-                                   log=lambda m: print(m, file=sys.stderr))
+                                   log=lambda m: print(m, file=sys.stderr), prices_only=args.prices_only)
             out.parent.mkdir(parents=True, exist_ok=True)
             md.save(out)
             last = min(b[-1]["date"] for b in md.bars.values())
